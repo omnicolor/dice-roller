@@ -10,6 +10,7 @@
         }
     ],
     "require": {
-        "shrikeh/teapot": "^2.3"
+        "shrikeh/teapot": "^2.3",
+        "predis/predis": "^1.1"
     }
 }
