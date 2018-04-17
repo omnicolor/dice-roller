@@ -9,5 +9,7 @@
             "email": "omni@digitaldarkness.com"
         }
     ],
-    "require": {}
+    "require": {
+        "shrikeh/teapot": "^2.3"
+    }
 }
