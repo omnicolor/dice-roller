@@ -75,6 +75,7 @@ if (!isset($players[$_GET['user_name']])) {
 }
 
 $player = $players[$_GET['user_name']];
+$player['id'] = $_GET['user_name'];
 $args = explode(' ', $_GET['text']);
 
 if ('start-combat' === $args[0]) {
@@ -99,16 +100,14 @@ if ('start-combat' === $args[0]) {
     }
 
     $redis->set('combat', 1);
-    foreach ($players as $playerInfo) {
-        $redis->set(sprintf('initiative.%s', $playerInfo['name']), null);
+    foreach ($players as $key => $playerInfo) {
+        $redis->set(sprintf('initiative.%s', $key), null);
     }
 
     // Add any goons!
-    error_log('adding goons: ' . $args[1]);
     if (isset($args[1]) && file_exists($args[1] . '.php')) {
         $redis->set('combat.enemies', $args[1]);
         $enemies = require $args[1] . '.php';
-        error_log(print_r($enemies, true));
         foreach ($enemies as $key => $enemy) {
             $initiative = $enemy['initiative']['base'];
             for ($i = 0; $i < $enemy['initiative']['dice']; $i++) {
@@ -116,6 +115,8 @@ if ('start-combat' === $args[0]) {
             }
             $redis->set(sprintf('initiative.%s', $key), $initiative);
         }
+    } elseif (isset($args[1])) {
+        error_log('Failed to load: ' . $args[1] . '.php');
     }
     $response->toChannel = true;
     $response->attachments[] = [
@@ -151,15 +152,15 @@ if ('next' === $args[0]) {
         // Close gathering initiative.
         $redis->set('combat', 2);
         $initiative = [];
-        foreach ($players as $playerInfo) {
-            $init = $redis->get(sprintf('initiative.%s', $playerInfo['name']));
+        foreach ($players as $key => $playerInfo) {
+            $init = $redis->get(sprintf('initiative.%s', $key));
             if (!$init) {
                 continue;
             }
             $initiative[$playerInfo['name']] = $init;
         }
         if ($redis->get('combat.enemies')) {
-            $enemies = require $args[1] . '.php';
+            $enemies = require $redis->get('combat.enemies') . '.php';
             foreach ($enemies as $key => $enemy) {
                 $initiative[$enemy['name']] = $redis->get(sprintf('initiative.%s', $key));
             }
@@ -180,29 +181,49 @@ if ('next' === $args[0]) {
     }
 
     $initiative = [];
-    foreach ($players as $playerInfo) {
-        $init = $redis->get(sprintf('initiative.%s', $playerInfo['name']));
+    foreach ($players as $key => $playerInfo) {
+        $init = $redis->get(sprintf('initiative.%s', $key));
         if (!$init) {
             continue;
         }
         $init -= 10;
         if ($init <= 0) {
+            $redis->set(sprintf('initiative.%s', $key), null);
             continue;
         }
-        $redis->set(sprintf('initiative.%s', $playerInfo['name']), $init);
+        $redis->set(sprintf('initiative.%s', $key), $init);
         $initiative[$playerInfo['name']] = $init;
     }
     if ($redis->get('combat.enemies')) {
-        $enemies = require $args[1] . '.php';
+        $enemies = require $redis->get('combat.enemies') . '.php';
         foreach ($enemies as $key => $enemy) {
-            $initiative[$enemy['name']] = $redis->get(sprintf('initiative.%s', $key));
+            $init = $redis->get(sprintf('initiative.%s', $key));
+            if (!$init) {
+                continue;
+            }
+            $init -= 10;
+            if ($init <= 0) {
+                $redis->set(sprintf('initiative.%s', $key), null);
+                continue;
+            }
+            $initiative[$enemy['name']] = $init;
+            $redis->set(sprintf('initiative.%s', $key), $init);
         }
     }
     if (empty($initiative)) {
         // Clear initiative, request more initiative roll.
         $redis->set('combat', 1);
-        foreach ($players as $playerInfo) {
-            $redis->set(sprintf('initiative.%s', $playerInfo['name']), null);
+        foreach ($players as $key => $playerInfo) {
+            $redis->set(sprintf('initiative.%s', $key), null);
+        }
+        $file = $redis->get('combat.enemies');
+        $enemies = require $file . '.php';
+        foreach ($enemies as $key => $enemy) {
+            $initiative = $enemy['initiative']['base'];
+            for ($i = 0; $i < $enemy['initiative']['dice']; $i++) {
+                $initiative += roll6();
+            }
+            $redis->set(sprintf('initiative.%s', $key), $initiative);
         }
         $response->toChannel = true;
         $response->attachments[] = [
@@ -261,7 +282,7 @@ if ('end-combat' === $args[0]) {
 
 if ('init' === $args[0]) {
     if ($player['name'] !== 'Gamemaster'
-            && $redis->get(sprintf('initiative.%s', $player['name']))) {
+            && $redis->get(sprintf('initiative.%s', $player['id']))) {
         $response->attachments[] = [
             'color' => 'danger',
             'title' => 'Already rolled',
@@ -290,7 +311,7 @@ if ('init' === $args[0]) {
             $rolls[] = $roll;
             $initiative += $roll;
         }
-        $redis->set(sprintf('initiative.%s', $player['name']), $initiative);
+        $redis->set(sprintf('initiative.%s', $player['id']), $initiative);
         $response->attachments[] = [
             'color' => '#439FE0',
             'title' => 'Initiative',
@@ -316,7 +337,7 @@ if ('init' === $args[0]) {
         $text .= sprintf(
             "*%s*: %d\n",
             $playerInfo['name'],
-            $redis->get(sprintf('initiative.%s', $playerInfo['name']))
+            $redis->get(sprintf('initiative.%s', $key))
         );
     }
     if ($redis->get('combat.enemies')) {
