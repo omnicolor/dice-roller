@@ -10,7 +10,15 @@
         }
     ],
     "require": {
-        "shrikeh/teapot": "^2.3",
-        "predis/predis": "^1.1"
+        "predis/predis": "^1.1",
+        "mongodb/mongodb": "^1.2",
+        "lcobucci/jwt": "^3.2",
+        "guzzlehttp/guzzle": "^6.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Commlink\\": "/opt/www/commlink.stg/api/classes",
+            "RollBot\\": "src"
+        }
     }
 }
