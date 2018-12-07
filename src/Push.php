@@ -14,8 +14,10 @@ use Commlink\Character;
  * Pushing the limit would add the character's edge to their dice pool, ignore
  * the test's limit, and use the Rule of Six (exploding sixes).
  */
-class Push extends Roll
+class Push extends Roll implements RedisClientInterface
 {
+    use RedisClientTrait;
+
     /**
      * Number of sixes that exploded.
      * @var int
@@ -68,6 +70,14 @@ class Push extends Roll
             }
         }
         rsort($this->rolls);
+
+        // Second Chance can't be used if you've already used edge on a test.
+        $this->redis->del(
+            sprintf(
+                'last-roll.%s',
+                strtolower(str_replace(' ', '_', $this->name))
+            )
+        );
         return $this;
     }
 

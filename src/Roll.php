@@ -11,8 +11,10 @@ use Commlink\Character;
 /**
  * Handle the character wanting to roll some dice.
  */
-class Roll
+class Roll implements RedisClientInterface
 {
+    use RedisClientTrait;
+
     /**
      * Number of dice to roll.
      * @var int
@@ -114,6 +116,23 @@ class Roll
             }
         }
         rsort($this->rolls);
+        $lastRoll = [
+            'dice' => $this->dice,
+            'fails' => $this->fails,
+            'successes' => $this->successes,
+            'limit' => $this->limit,
+            'text' => $this->text,
+            'rolls' => $this->rolls,
+            'criticalGlitch' => $this->criticalGlitch,
+            'glitch' => $this->glitch,
+        ];
+        $this->redis->set(
+            sprintf(
+                'last-roll.%s',
+                strtolower(str_replace(' ', '_', $this->name))
+            ),
+            json_encode($lastRoll)
+        );
         return $this;
     }
 
