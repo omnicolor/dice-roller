@@ -177,7 +177,7 @@ class Roll
             );
         }
         $color = 'good';
-        if ($glitch) {
+        if ($this->glitch) {
             $color = 'warning';
             $title .= ', glitched';
         } elseif (0 === $successes) {
