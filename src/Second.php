@@ -14,18 +14,54 @@ use Commlink\Character;
  * Re-rolls any non-successes from the previous roll, but does not remove
  * glitches. Sixes do not explode and limits still count.
  */
-class Second extends Roll implements RedisClientInterface
+class Second extends Roll implements MongoClientInterface, RedisClientInterface
 {
+    use MongoClientTrait;
     use RedisClientTrait;
+
+    /**
+     * Character
+     * @var \Commlink\Character
+     */
+    protected $character;
+
+    /**
+     * Set up a Second Change roll.
+     * @param \Commlink\Character $character
+     * @param array $args
+     */
+    public function __construct(Character $character, array $args) {
+        $this->character = $character;
+        parent::__construct($character, $args);
+    }
+
+    /**
+     * Decrement a character's remaining edge.
+     * @return Roll
+     */
+    protected function updateEdge(): Roll
+    {
+        $search = ['_id' => new \MongoDB\BSON\ObjectID($this->character->id)];
+        $update = [
+            '$set' => [
+                'edgeCurrent' => $this->character->edgeCurrent,
+            ],
+        ];
+        $this->mongo->shadowrun->characters->updateOne($search, $update);
+        return $this;
+    }
 
     /**
      * Load the last roll from Redis, then re-roll non-successes.
      * @throws \LogicException If trying to second chance a critical glitch
-     * @throws \RuntimeException If trying to second chance without a last roll
+     * @throws \RuntimeException If trying to second chance without edge or a last roll
      * @return Roll
      */
     protected function roll(): Roll
     {
+        if (!$this->character->edgeCurrent) {
+            throw new \RuntimeException('out');
+        }
         $lastRoll = $this->redis->get(
             sprintf(
                 'last-roll.%s',
@@ -33,7 +69,7 @@ class Second extends Roll implements RedisClientInterface
             )
         );
         if (!$lastRoll) {
-            throw new \RuntimeException();
+            throw new \RuntimeException('no');
         }
         $lastRoll = json_decode($lastRoll);
         if ($lastRoll->criticalGlitch) {
@@ -78,6 +114,8 @@ class Second extends Roll implements RedisClientInterface
                 strtolower(str_replace(' ', '_', $this->name))
             )
         );
+        $this->character->edgeCurrent--;
+        $this->updateEdge();
         return $this;
     }
 
@@ -92,13 +130,21 @@ class Second extends Roll implements RedisClientInterface
             $this->roll()
                 ->prettifyRolls();
         } catch (\RuntimeException $e) {
-            $response->attachments[] = [
-                'color' => 'danger',
-                'title' => 'No Last Roll',
-                'text' => 'You asked to use the Second Chance edge effect, but '
-                    . 'we don\'t have a last roll for you. This may be because '
-                    . 'the last roll used edge.',
-            ];
+            if ($e->getMessage() == 'no') {
+                $response->attachments[] = [
+                    'color' => 'danger',
+                    'title' => 'No Last Roll',
+                    'text' => 'You asked to use the Second Chance edge effect, '
+                    . 'but we don\'t have a last roll for you. This may be '
+                    . 'because the last roll used edge.',
+                ];
+            } else {
+                $response->attachments[] = [
+                    'color' => 'danger',
+                    'title' => 'No More Edge',
+                    'text' => 'Tough luck chummer, you\'re out of edge.',
+                ];
+            }
             return (string)$response;
         } catch (\LogicException $e) {
             // Second chance can not be used to fix a Critical Glitch.
@@ -111,6 +157,11 @@ class Second extends Roll implements RedisClientInterface
             return (string)$response;
         }
         $response->toChannel = true;
+        $footer = sprintf(
+            '%s, %d edge left',
+            implode(' ', $this->rolls),
+            $this->character->edgeCurrent
+        );
 
         if ($this->criticalGlitch) {
             $response->attachments[] = [
@@ -121,7 +172,7 @@ class Second extends Roll implements RedisClientInterface
                     $this->name,
                     $this->fails
                 ),
-                'footer' => implode(' ', $this->rolls),
+                'footer' => $footer,
             ];
             return (string)$response;
         }
@@ -159,7 +210,7 @@ class Second extends Roll implements RedisClientInterface
             'color' => $color,
             'title' => $title,
             'text' => $text,
-            'footer' => implode(' ', $this->rolls),
+            'footer' => $footer,
         ];
         return (string)$response;
     }

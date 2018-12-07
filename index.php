@@ -110,4 +110,7 @@ if (!is_numeric($args[0])) {
 if ($roll instanceof RedisClientInterface) {
     $roll->setRedisClient($redis);
 }
+if ($roll instanceof MongoClientInterface) {
+    $roll->setMongoClient($mongo);
+}
 echo $roll;
