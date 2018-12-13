@@ -55,7 +55,7 @@ class Init extends Roll implements RedisClientInterface
     {
         $this->initiative = $this->base;
         for ($i = 0; $i < $this->dice; $i ++) {
-            $roll = roll6();
+            $roll = random_int(1, 6);
             $this->rolls[] = $roll;
             $this->initiative += $roll;
         }
