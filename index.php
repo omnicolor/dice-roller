@@ -9,18 +9,65 @@ use Lcobucci\JWT\Signer\Hmac\Sha256;
 require 'vendor/autoload.php';
 $config = require 'config.php';
 
+/**
+ * Load a Commlink user based on the Slack information from the request.
+ * @param \MongoDB\Client $mongo
+ * @param string $userId
+ * @param string $teamId
+ * @param string $channelId
+ * @return \MongoDB\Model\BSONDocument
+ */
 function loadUser(
     \MongoDB\Client $mongo,
     string $userId,
     string $teamId,
     string $channelId
-) {
+): ?\MongoDB\Model\BSONDocument {
     $search = [
         'slack.user_id' => $userId,
         'slack.team_id' => $teamId,
         'slack.channel_id' => $channelId,
     ];
     return $mongo->shadowrun->users->findOne($search);
+}
+
+/**
+ * The user is not registered in Commlink, give them a registration button.
+ * @param Response $response
+ * @param string $api
+ * @param string|null $userId
+ * @param string|null $teamId
+ * @param string|null $channelId
+ */
+function sendUnregisteredResponse(
+    Response $response,
+    string $web,
+    ?string $userId,
+    ?string $teamId,
+    ?string $channelId
+): void {
+    $url = sprintf(
+        '%ssettings?%s',
+        $web,
+        http_build_query([
+            'user_id' => $userId,
+            'team_id' => $teamId,
+            'channel_id' => $channelId,
+        ])
+    );
+    $response->attachments[] = [
+        'color' => 'danger',
+        'title' => 'Bad Request',
+        'text' => 'You don\'t seem to be registered to play.',
+        'actions' => [
+            [
+                'type' => 'button',
+                'text' => 'Register',
+                'url' => $url,
+            ],
+        ],
+    ];
+    echo (string)$response;
 }
 
 $response = new Response();
@@ -34,8 +81,16 @@ $mongo = new \MongoDB\Client(
     )
 );
 
-header('Content-Type: application/json');
 
+if (!isset($_GET['user_id'], $_GET['team_id'], $_GET['channel_id'])) {
+    header('Content-Type: text/plain');
+    echo 'Bad Request', PHP_EOL, PHP_EOL,
+        'Your request does not seem to be a valid Slack slash command.',
+        PHP_EOL;
+    exit();
+}
+
+header('Content-Type: application/json');
 if (!isset($_GET['text']) || !trim($_GET['text'])) {
     $response->attachments[] = [
         'color' => 'danger',
@@ -53,13 +108,13 @@ $args = explode(' ', $_GET['text']);
 
 $user = loadUser($mongo, $_GET['user_id'], $_GET['team_id'], $_GET['channel_id']);
 if (!$user) {
-    $response->attachments[] = [
-        'color' => 'danger',
-        'title' => 'Bad Request',
-        'text' => 'You don\'t seem to be registered to play. Let the channel ' .
-            'know and they\'ll get you added.',
-    ];
-    echo $response;
+    sendUnregisteredResponse(
+        $response,
+        $config['web'],
+        $_GET['user_id'],
+        $_GET['team_id'],
+        $_GET['channel_id']
+    );
     exit();
 }
 
@@ -73,14 +128,14 @@ foreach ($user->slack as $slack) {
         break;
     }
 }
-if (!$characterId || !$campaignId) {
-    $response->attachments[] = [
-        'color' => 'danger',
-        'title' => 'Bad Request',
-        'text' => 'You don\'t seem to be registered to play. Let the channel ' .
-            'know and they\'ll get you added.',
-    ];
-    echo $response;
+if (!$campaignId) {
+    sendUnregisteredResponse(
+        $config['web'],
+        $response,
+        $_GET['user_id'],
+        $_GET['team_id'],
+        $_GET['channel_id']
+    );
     exit();
 }
 
@@ -93,8 +148,14 @@ $jwt = (new Builder())
     ->set('email', $user->email)
     ->sign(new Sha256(), $config['secret'])
     ->getToken();
-$character = new Character($characterId, $guzzle, $jwt);
-$character->campaignId = $campaignId;
+
+if ($characterId) {
+    $character = new Character($characterId, $guzzle, $jwt);
+    $character->campaignId = $campaignId;
+} else {
+    $character = new Character();
+    $character->handle = 'GM';
+}
 
 if (!is_numeric($args[0])) {
     try {
