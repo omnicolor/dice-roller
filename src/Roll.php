@@ -126,13 +126,16 @@ class Roll implements RedisClientInterface
             'criticalGlitch' => $this->criticalGlitch,
             'glitch' => $this->glitch,
         ];
-        $this->redis->set(
-            sprintf(
-                'last-roll.%s',
-                strtolower(str_replace(' ', '_', $this->name))
-            ),
-            json_encode($lastRoll)
-        );
+        if ($this->name !== 'GM') {
+            // Only non-GMs get to use edge.
+            $this->redis->set(
+                sprintf(
+                    'last-roll.%s',
+                    strtolower(str_replace(' ', '_', $this->name))
+                ),
+                json_encode($lastRoll)
+            );
+        }
         return $this;
     }
 
