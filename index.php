@@ -77,6 +77,10 @@ $mongo = new \MongoDB\Client(
         $config['mongo']['host']
     )
 );
+if (isset($_POST['payload'])) {
+    require 'button.php';
+    exit();
+}
 
 if (!isset($_POST['user_id'], $_POST['team_id'], $_POST['channel_id'])) {
     header('Content-Type: text/plain');

@@ -14,27 +14,10 @@ use Commlink\Character;
  * Re-rolls any non-successes from the previous roll, but does not remove
  * glitches. Sixes do not explode and limits still count.
  */
-class Second extends Roll implements MongoClientInterface, RedisClientInterface
+class Second
+    extends Roll
+    implements MongoClientInterface, RedisClientInterface
 {
-    use MongoClientTrait;
-    use RedisClientTrait;
-
-    /**
-     * Character
-     * @var \Commlink\Character
-     */
-    protected $character;
-
-    /**
-     * Set up a Second Change roll.
-     * @param \Commlink\Character $character
-     * @param array $args
-     */
-    public function __construct(Character $character, array $args) {
-        $this->character = $character;
-        parent::__construct($character, $args);
-    }
-
     /**
      * Decrement a character's remaining edge.
      * @return Roll
@@ -185,13 +168,13 @@ class Second extends Roll implements MongoClientInterface, RedisClientInterface
 
         if ($this->limit && $this->limit < $this->successes) {
             $title = sprintf(
-                '%s rolled %d successes, hit limit',
+                'Second Chance: %s rolled %d successes, hit limit',
                 $this->name,
                 $this->limit
             );
         } else {
             $title = sprintf(
-                '%s rolled %d successes',
+                'Second Chance: %s rolled %d successes',
                 $this->name,
                 $this->successes
             );
@@ -206,6 +189,7 @@ class Second extends Roll implements MongoClientInterface, RedisClientInterface
         if ($this->text) {
             $response->text = $this->text;
         }
+        $response->replaceOriginal = false;
         $response->attachments[] = [
             'color' => $color,
             'title' => $title,

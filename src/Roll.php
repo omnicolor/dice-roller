@@ -11,9 +11,17 @@ use Commlink\Character;
 /**
  * Handle the character wanting to roll some dice.
  */
-class Roll implements RedisClientInterface
+class Roll
+    implements MongoClientInterface, RedisClientInterface
 {
+    use MongoClientTrait;
     use RedisClientTrait;
+
+    /**
+     * Current character
+     * @var \Commlink\Character
+     */
+    protected $character;
 
     /**
      * Number of dice to roll.
@@ -76,18 +84,13 @@ class Roll implements RedisClientInterface
      */
     public function __construct(Character $character, array $args)
     {
+        $this->character = $character;
         $this->name = $character->handle;
-        $this->dice = (int)$args[0];
-        if (isset($args[2])) {
-            $this->limit = (int)$args[1];
-            $this->text = implode(' ', array_slice($args, 2));
-        } elseif (isset($args[1])) {
-            if (is_numeric($args[1])) {
-                $this->limit = (int)$args[1];
-            } else {
-                $this->text = $args[1];
-            }
+        $this->dice = array_shift($args);
+        if (isset($args[0]) && is_numeric($args[0])) {
+            $this->limit = array_shift($args);
         }
+        $this->text = implode(' ', $args);
     }
 
     /**
@@ -208,12 +211,28 @@ class Roll implements RedisClientInterface
         if ($this->text) {
             $response->text = $this->text;
         }
-        $response->attachments[] = [
+        $attachment = [
+            'callback_id' => $this->name,
             'color' => $color,
             'title' => $title,
             'text' => $text,
             'footer' => implode(' ', $this->rolls),
         ];
+
+        // Non-GM characters that still have some edge get the second change
+        // button.
+        if ($this->name !== 'GM' && $this->character->edgeCurrent) {
+            $attachment['actions'] = [
+                [
+                    'name' => 'edge',
+                    'text' => 'Second Chance',
+                    'type' => 'button',
+                    'value' => 'second',
+                ],
+            ];
+        }
+
+        $response->attachments[] = $attachment;
         $response->toChannel = true;
         return (string)$response;
     }

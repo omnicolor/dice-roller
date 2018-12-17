@@ -30,6 +30,12 @@ class Response
     public $toChannel = false;
 
     /**
+     * Whether to set the replace_original property on the response.
+     * @var ?boolean
+     */
+    public $replaceOriginal = null;
+
+    /**
      * Return the response as a string.
      * @return string
      */
@@ -46,6 +52,9 @@ class Response
         }
         if ($this->attachments) {
             $res['attachments'] = $this->attachments;
+        }
+        if (null !== $this->replaceOriginal) {
+            $res['replace_original'] = $this->replaceOriginal;
         }
         return json_encode($res);
     }
