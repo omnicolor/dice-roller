@@ -52,6 +52,10 @@ class Help
             . '+ edge, with exploding 6\'s, manually add your edge' . PHP_EOL
             . '`second` - Second Chance: Re-roll your last roll\'s failures',
         ];
+        $response->attachments[] = [
+            'title' => 'Misc Commands',
+            'text' => '`campaign` - Return information about the campaign',
+        ];
         return (string)$response;
     }
 }
