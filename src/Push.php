@@ -56,7 +56,7 @@ class Push
         $search = ['_id' => new \MongoDB\BSON\ObjectID($this->character->id)];
         $update = [
             '$set' => [
-                'edgeCurrent' => $this->character->edgeCurrent,
+                'edgeCurrent' => $this->character->edgeCurrent - 1,
             ],
         ];
         $this->mongo->shadowrun->characters->updateOne($search, $update);
@@ -110,7 +110,6 @@ class Push
                 strtolower(str_replace(' ', '_', $this->name))
             )
         );
-        $this->character->edgeCurrent--;
         $this->updateEdge();
         return $this;
     }
