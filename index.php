@@ -32,6 +32,25 @@ function loadUser(
 }
 
 /**
+ * Try to load a campaign attached to the current team and channel.
+ * @param \MongoDB\Client $mongo
+ * @param string $teamId
+ * @param string $channelId
+ * @return \MongoDB\Model\BSONDocument
+ */
+function loadCampaign(
+    \MongoDb\Client $mongo,
+    string $teamId,
+    string $channelId
+): ?\MongoDB\Model\BSONDocument {
+    $search = [
+        'slack-team' => $teamId,
+        'slack-channel' => $channelId,
+    ];
+    return $mongo->shadowrun->campaigns->findOne($search);
+}
+
+/**
  * The user is not registered in Commlink, give them a registration button.
  * @param Response $response
  * @param string $api
@@ -81,7 +100,6 @@ $mongo = new \MongoDB\Client(
     )
 );
 
-
 if (!isset($_GET['user_id'], $_GET['team_id'], $_GET['channel_id'])) {
     header('Content-Type: text/plain');
     echo 'Bad Request', PHP_EOL, PHP_EOL,
@@ -108,6 +126,31 @@ $args = explode(' ', $_GET['text']);
 
 $user = loadUser($mongo, $_GET['user_id'], $_GET['team_id'], $_GET['channel_id']);
 if (!$user) {
+    // The user is not registered, is the channel registered?
+    $campaign = loadCampaign($mongo, $_GET['team_id'], $_GET['channel_id']);
+    if (!$campaign) {
+        $response->attachments[] = [
+            'color' => 'danger',
+            'title' => 'Bad Request',
+            'text' => 'There does not seem to be a campaign linked to this '
+            . 'channel. If you\'re the Gamemaster, go to the campaign page in '
+            .  $config['web'] . ' and set it up.',
+            'fields' => [
+                [
+                    'title' => 'team_id',
+                    'value' => $_GET['team_id'],
+                    'short' => true,
+                ],
+                [
+                    'title' => 'channel_id',
+                    'value' => $_GET['channel_id'],
+                    'short' => true,
+                ],
+            ],
+        ];
+        echo (string)$response;
+        exit();
+    }
     sendUnregisteredResponse(
         $response,
         $config['web'],
