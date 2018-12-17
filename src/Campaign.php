@@ -22,6 +22,12 @@ class Campaign implements MongoClientInterface
     protected $campaignId;
 
     /**
+     * Character's handle.
+     * @var string
+     */
+    protected $handle;
+
+    /**
      * Build a new Campaign information object
      * @param \Commlink\Character $character
      * @param array $unused
@@ -29,6 +35,7 @@ class Campaign implements MongoClientInterface
     public function __construct(Character $character, array $unused)
     {
         $this->campaignId = $character->campaignId;
+        $this->handle = $character->handle;
     }
 
     /**
@@ -54,7 +61,12 @@ class Campaign implements MongoClientInterface
                             $campaign['current-date'] ?? $campaign['start-date']
                         )
                     ),
-                    'short' => false,
+                    'short' => true,
+                ],
+                [
+                    'title' => 'Handle',
+                    'value' => $this->handle,
+                    'short' => true,
                 ],
                 [
                     'title' => 'Notes',
