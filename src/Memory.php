@@ -11,10 +11,10 @@ use Commlink\Character;
 /**
  * Roll an attribute-only test for the character.
  */
-class Memory extends Roll implements RedisClientInterface
+class Memory
+    extends Roll
+    implements MongoClientInterface, RedisClientInterface
 {
-    use RedisClientTrait;
-
     /**
      * Build a memory test.
      */

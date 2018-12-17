@@ -11,7 +11,7 @@ use Commlink\Character;
 /**
  * Handle a user trying to roll initiative.
  */
-class Init extends Roll implements RedisClientInterface
+class Init implements RedisClientInterface
 {
     use RedisClientTrait;
 
@@ -22,16 +22,22 @@ class Init extends Roll implements RedisClientInterface
     protected $base = 0;
 
     /**
+     * Campaign ID the character is attached to.
+     * @var string
+     */
+    protected $campaignId;
+
+    /**
      * Character's rolled initiative.
      * @var int
      */
     protected $initiative = 0;
 
     /**
-     * Campaign ID the character is attached to.
+     * Character's handle.
      * @var string
      */
-    protected $campaignId;
+    protected $name;
 
     /**
      * Build a new initiative roller.

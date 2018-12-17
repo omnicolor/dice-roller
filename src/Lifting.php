@@ -11,10 +11,10 @@ use Commlink\Character;
 /**
  * Roll an attribute-only test for the character.
  */
-class Lifting extends Roll implements RedisClientInterface
+class Lifting
+    extends Roll
+    implements MongoClientInterface, RedisClientInterface
 {
-    use RedisClientTrait;
-
     /**
      * Build a lifting/carrying test.
      */

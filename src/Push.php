@@ -14,7 +14,9 @@ use Commlink\Character;
  * Pushing the limit would add the character's edge to their dice pool, ignore
  * the test's limit, and use the Rule of Six (exploding sixes).
  */
-class Push extends Roll implements MongoClientInterface, RedisClientInterface
+class Push
+    extends Roll
+    implements MongoClientInterface, RedisClientInterface
 {
     use MongoClientTrait;
     use RedisClientTrait;

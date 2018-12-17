@@ -11,7 +11,7 @@ use Commlink\Character;
 /**
  * Show the current combat initiative.
  */
-class Show extends Roll implements RedisClientInterface
+class Show implements RedisClientInterface
 {
     use RedisClientTrait;
 

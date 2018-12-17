@@ -11,10 +11,10 @@ use Commlink\Character;
 /**
  * Roll an attribute-only test for the character.
  */
-class Luck extends Roll implements RedisClientInterface
+class Luck
+    extends Roll
+    implements MongoClientInterface, RedisClientInterface
 {
-    use RedisClientTrait;
-
     /**
      * Build a luck test.
      */

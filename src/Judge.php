@@ -11,10 +11,10 @@ use Commlink\Character;
 /**
  * Roll an attribute-only test for the character.
  */
-class Judge extends Roll implements RedisClientInterface
+class Judge
+    extends Roll
+    implements MongoClientInterface, RedisClientInterface
 {
-    use RedisClientTrait;
-
     /**
      * Build a judge intentions test.
      */

@@ -11,10 +11,10 @@ use Commlink\Character;
 /**
  * Roll a composure test for the character.
  */
-class Composure extends Roll implements RedisClientInterface
+class Composure
+    extends Roll
+    implements MongoClientInterface, RedisClientInterface
 {
-    use RedisClientTrait;
-
     /**
      * Build a composure test.
      */
