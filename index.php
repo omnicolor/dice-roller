@@ -10,28 +10,6 @@ require 'vendor/autoload.php';
 $config = require 'config.php';
 
 /**
- * Load a Commlink user based on the Slack information from the request.
- * @param \MongoDB\Client $mongo
- * @param string $userId
- * @param string $teamId
- * @param string $channelId
- * @return \MongoDB\Model\BSONDocument
- */
-function loadUser(
-    \MongoDB\Client $mongo,
-    string $userId,
-    string $teamId,
-    string $channelId
-): ?\MongoDB\Model\BSONDocument {
-    $search = [
-        'slack.user_id' => $userId,
-        'slack.team_id' => $teamId,
-        'slack.channel_id' => $channelId,
-    ];
-    return $mongo->shadowrun->users->findOne($search);
-}
-
-/**
  * Try to load a campaign attached to the current team and channel.
  * @param \MongoDB\Client $mongo
  * @param string $teamId
@@ -124,8 +102,14 @@ if (!isset($_POST['text']) || !trim($_POST['text'])) {
 }
 $args = explode(' ', $_POST['text']);
 
-$user = loadUser($mongo, $_GET['user_id'], $_GET['team_id'], $_GET['channel_id']);
-if (!$user) {
+try {
+    $user = new User(
+        $mongo,
+        $_POST['user_id'],
+        $_POST['team_id'],
+        $_POST['channel_id']
+    );
+} catch (\Exception $e) {
     // The user is not registered, is the channel registered?
     $campaign = loadCampaign($mongo, $_POST['team_id'], $_POST['channel_id']);
     if (!$campaign) {
