@@ -178,11 +178,11 @@ $jwt = (new Builder())
 
 if ($characterId) {
     $character = new Character($characterId, $guzzle, $jwt);
-    $character->campaignId = $campaignId;
 } else {
     $character = new Character();
     $character->handle = 'GM';
 }
+$character->campaignId = $campaignId;
 
 if (!is_numeric($args[0])) {
     try {
