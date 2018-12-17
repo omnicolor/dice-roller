@@ -100,7 +100,7 @@ $mongo = new \MongoDB\Client(
     )
 );
 
-if (!isset($_GET['user_id'], $_GET['team_id'], $_GET['channel_id'])) {
+if (!isset($_POST['user_id'], $_POST['team_id'], $_POST['channel_id'])) {
     header('Content-Type: text/plain');
     echo 'Bad Request', PHP_EOL, PHP_EOL,
         'Your request does not seem to be a valid Slack slash command.',
@@ -109,7 +109,7 @@ if (!isset($_GET['user_id'], $_GET['team_id'], $_GET['channel_id'])) {
 }
 
 header('Content-Type: application/json');
-if (!isset($_GET['text']) || !trim($_GET['text'])) {
+if (!isset($_POST['text']) || !trim($_POST['text'])) {
     $response->attachments[] = [
         'color' => 'danger',
         'title' => 'Bad Request',
@@ -122,12 +122,12 @@ if (!isset($_GET['text']) || !trim($_GET['text'])) {
     echo $response;
     exit();
 }
-$args = explode(' ', $_GET['text']);
+$args = explode(' ', $_POST['text']);
 
 $user = loadUser($mongo, $_GET['user_id'], $_GET['team_id'], $_GET['channel_id']);
 if (!$user) {
     // The user is not registered, is the channel registered?
-    $campaign = loadCampaign($mongo, $_GET['team_id'], $_GET['channel_id']);
+    $campaign = loadCampaign($mongo, $_POST['team_id'], $_POST['channel_id']);
     if (!$campaign) {
         $response->attachments[] = [
             'color' => 'danger',
@@ -138,12 +138,12 @@ if (!$user) {
             'fields' => [
                 [
                     'title' => 'team_id',
-                    'value' => $_GET['team_id'],
+                    'value' => $_POST['team_id'],
                     'short' => true,
                 ],
                 [
                     'title' => 'channel_id',
-                    'value' => $_GET['channel_id'],
+                    'value' => $_POST['channel_id'],
                     'short' => true,
                 ],
             ],
@@ -154,18 +154,18 @@ if (!$user) {
     sendUnregisteredResponse(
         $response,
         $config['web'],
-        $_GET['user_id'],
-        $_GET['team_id'],
-        $_GET['channel_id']
+        $_POST['user_id'],
+        $_POST['team_id'],
+        $_POST['channel_id']
     );
     exit();
 }
 
 $campaignId = $characterId = null;
 foreach ($user->slack as $slack) {
-    if ($_GET['user_id'] === $slack->user_id &&
-        $_GET['team_id'] === $slack->team_id &&
-        $_GET['channel_id'] === $slack->channel_id) {
+    if ($_POST['user_id'] === $slack->user_id &&
+        $_POST['team_id'] === $slack->team_id &&
+        $_POST['channel_id'] === $slack->channel_id) {
         $characterId = $slack->character_id;
         $campaignId = $slack->campaign_id;
         break;
@@ -175,9 +175,9 @@ if (!$campaignId) {
     sendUnregisteredResponse(
         $config['web'],
         $response,
-        $_GET['user_id'],
-        $_GET['team_id'],
-        $_GET['channel_id']
+        $_POST['user_id'],
+        $_POST['team_id'],
+        $_POST['channel_id']
     );
     exit();
 }
