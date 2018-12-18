@@ -106,11 +106,11 @@ foreach ($user->slack as $slack) {
 }
 if ($characterId) {
     $character = new Character($characterId, $guzzle, $jwt);
-    $character->campaignId = $campaignId;
 } else {
     $character = new Character();
     $character->handle = 'GM';
 }
+$character->campaignId = $campaignId;
 
 // Make sure it's not another character trying to edge this roll.
 if ($payload->callback_id != $character->handle) {
