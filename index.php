@@ -193,7 +193,12 @@ if (!is_numeric($args[0])) {
         $class = 'RollBot\\' . ucfirst($args[0]);
         $roll = new $class($character, $args);
     } catch (\Error $e) {
-        echo 'Nope: ' . $e->getMessage();
+        $response->attachments[] = [
+            'color' => 'danger',
+            'title' => 'Bad Request',
+            'text' => 'That doesn\'t seem to be a valid command. Try `/roll help`.',
+        ];
+        echo (string)$response;
         exit();
     }
 } else {
