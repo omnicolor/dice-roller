@@ -58,7 +58,9 @@ class Help
         ];
         $response->attachments[] = [
             'title' => 'Misc Commands',
-            'text' => '`campaign` - Return information about the campaign',
+            'text' => '`campaign` - Return information about the campaign'
+            . PHP_EOL
+            . '`stats` - Show my character\'s stat block',
         ];
         return (string)$response;
     }
