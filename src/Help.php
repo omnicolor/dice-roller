@@ -31,14 +31,18 @@ class Help
         $response->pretext = 'RollBot allows you to roll Shadowrun dice';
         $response->attachments[] = [
             'text' => '`help` - Show help' . PHP_EOL
-            . '`init` - Roll your initiative' . PHP_EOL
             . '`show` - Show current initiative status' . PHP_EOL
             . '`6 [text]` - Roll 6 dice, with optional text (automatics, '
             . 'perception, etc)' . PHP_EOL
             . '`12 6 [text]` - Roll 12 dice with a limit of 6' . PHP_EOL,
         ];
         $response->attachments[] = [
-            'title' => 'Attribute-Only tests',
+            'title' => 'Initiative Rolls',
+            'text' => '`init` - Roll your initiative normally' . PHP_EOL
+            . '`blitz` - Use Edge to Blitz and roll 5 dice',
+        ];
+        $response->attachments[] = [
+            'title' => 'Attribute-Only Tests',
             'text' => '`composure` - Composure: Roll Charisma + Willpower'
             . PHP_EOL
             . '`lifting` - Lift/Carry: Roll Body + Strength' . PHP_EOL

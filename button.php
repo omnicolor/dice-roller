@@ -40,17 +40,6 @@ $teamId = $payload->team->id;
 $channelId = $payload->channel->id;
 $originalMessage = $payload->original_message;
 
-if ($action != 'edge' || $type != 'second') {
-    $response->attachments[] = [
-        'color' => 'danger',
-        'replace_original' => false,
-        'response_type' => 'ephemeral',
-        'title' => 'Bad Request',
-        'text' => 'I don\'t know how to handle that action.',
-    ];
-    echo (string)$response;
-    exit();
-}
 try {
     $user = new User($mongo, $userId, $teamId, $channelId);
 } catch (\Exception $e) {
@@ -113,7 +102,9 @@ if ($characterId) {
 $character->campaignId = $campaignId;
 
 // Make sure it's not another character trying to edge this roll.
-if ($payload->callback_id != $character->handle) {
+if (($payload->callback_id != $character->handle)
+    && ($payload->callback_id != $campaignId)) {
+
     $response->replaceOriginal = false;
     $response->attachments[] = [
         'color' => 'danger',
@@ -124,18 +115,43 @@ if ($payload->callback_id != $character->handle) {
     exit();
 }
 
+try {
+    $class = 'RollBot\\' . ucfirst($type);
+    $roll = new $class($character, []);
+} catch (\Error $e) {
+    error_log($action . ' ' . $type . ' ' . $e->getMessage());
+    $response->replaceOriginal = false;
+    $response->toChannel = false;
+    $response->attachments[] = [
+        'color' => 'danger',
+        'replace_original' => false,
+        'response_type' => 'ephemeral',
+        'title' => 'Bad Request',
+        'text' => 'I don\'t know how to handle that action.',
+    ];
+    echo (string)$response;
+    exit();
+}
 
-$roll = new Second($character, []);
-$roll->setRedisClient($redis);
-$roll->setMongoClient($mongo);
-$response = (string)$roll;
-$response = json_decode($response);
+if ($roll instanceof RedisClientInterface) {
+    $roll->setRedisClient($redis);
+}
+if ($roll instanceof MongoClientInterface) {
+    $roll->setMongoClient($mongo);
+}
 
-// Change the original message to not include the button, and grey out the
-// coloring.
-unset(
-    $originalMessage->attachments[0]->actions,
-    $originalMessage->attachments[0]->color
-);
-$originalMessage->attachments[] = $response->attachments[0];
-echo json_encode($originalMessage);
+if ($roll::UPDATE_MESSAGE) {
+    $response = (string)$roll;
+    $response = json_decode($response);
+
+    // Change the original message to not include the button, and grey out the
+    // coloring.
+    unset(
+        $originalMessage->attachments[0]->actions,
+        $originalMessage->attachments[0]->color
+    );
+    $originalMessage->attachments[] = $response->attachments[0];
+    echo json_encode($originalMessage);
+    exit();
+}
+echo $roll;

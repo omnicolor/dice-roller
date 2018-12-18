@@ -18,6 +18,8 @@ class Second
     extends Roll
     implements MongoClientInterface, RedisClientInterface
 {
+    const UPDATE_MESSAGE = true;
+
     /**
      * Decrement a character's remaining edge.
      * @return Roll
