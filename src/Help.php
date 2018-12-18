@@ -31,7 +31,6 @@ class Help
         $response->pretext = 'RollBot allows you to roll Shadowrun dice';
         $response->attachments[] = [
             'text' => '`help` - Show help' . PHP_EOL
-            . '`show` - Show current initiative status' . PHP_EOL
             . '`6 [text]` - Roll 6 dice, with optional text (automatics, '
             . 'perception, etc)' . PHP_EOL
             . '`12 6 [text]` - Roll 12 dice with a limit of 6' . PHP_EOL,
@@ -39,6 +38,7 @@ class Help
         $response->attachments[] = [
             'title' => 'Initiative Rolls',
             'text' => '`init` - Roll your initiative normally' . PHP_EOL
+            . '`show` - Show current initiative status' . PHP_EOL
             . '`blitz` - Use Edge to Blitz and roll 5 dice',
         ];
         $response->attachments[] = [
