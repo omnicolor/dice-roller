@@ -11,7 +11,8 @@ use Commlink\Character;
 /**
  * Handle a user trying to roll initiative.
  */
-class Init implements RedisClientInterface
+class Init
+    implements RedisClientInterface
 {
     use RedisClientTrait;
 
@@ -57,7 +58,7 @@ class Init implements RedisClientInterface
      * Roll the character's initiative.
      * @return Roll
      */
-    protected function roll(): Roll
+    protected function roll(): Init
     {
         $this->initiative = $this->base;
         for ($i = 0; $i < $this->dice; $i ++) {
