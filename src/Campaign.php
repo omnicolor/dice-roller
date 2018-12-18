@@ -49,7 +49,6 @@ class Campaign implements MongoClientInterface
         ];
         $campaign = $this->mongo->shadowrun->campaigns->findOne($search);
         $response = new Response();
-        $response->pretext = 'Campaign Information';
         $response->attachments[] = [
             'title' => $campaign->name,
             'fields' => [
