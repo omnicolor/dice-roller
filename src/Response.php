@@ -35,6 +35,8 @@ class Response
      */
     public $replaceOriginal = null;
 
+    public $deleteOriginal = true;
+
     /**
      * Return the response as a string.
      * @return string
@@ -55,6 +57,9 @@ class Response
         }
         if (null !== $this->replaceOriginal) {
             $res['replace_original'] = $this->replaceOriginal;
+        }
+        if ($this->deleteOriginal) {
+            $res['delete_original'] = true;
         }
         return json_encode($res);
     }
