@@ -42,6 +42,11 @@ class Help
             . '`blitz` - Use Edge to Blitz and roll 5 dice',
         ];
         $response->attachments[] = [
+            'title' => 'Magic Rolls',
+            'text' => '`drain {spellId} {force} {hits} {reckless?}` - Try to '
+            . 'resist drain',
+        ];
+        $response->attachments[] = [
             'title' => 'Attribute-Only Tests',
             'text' => '`composure` - Composure: Roll Charisma + Willpower'
             . PHP_EOL
