@@ -119,18 +119,18 @@ class Roll
             }
         }
         rsort($this->rolls);
-        $lastRoll = [
-            'dice' => $this->dice,
-            'fails' => $this->fails,
-            'successes' => $this->successes,
-            'limit' => $this->limit,
-            'text' => $this->text,
-            'rolls' => $this->rolls,
-            'criticalGlitch' => $this->criticalGlitch,
-            'glitch' => $this->glitch,
-        ];
         if ($this->name !== 'GM') {
             // Only non-GMs get to use edge.
+            $lastRoll = [
+                'dice' => $this->dice,
+                'fails' => $this->fails,
+                'successes' => $this->successes,
+                'limit' => $this->limit,
+                'text' => $this->text,
+                'rolls' => $this->rolls,
+                'criticalGlitch' => $this->criticalGlitch,
+                'glitch' => $this->glitch,
+            ];
             $this->redis->set(
                 sprintf(
                     'last-roll.%s',
