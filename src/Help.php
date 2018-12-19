@@ -28,7 +28,7 @@ class Help
     public function __toString(): string
     {
         $response = new Response();
-        $response->pretext = 'RollBot allows you to roll Shadowrun dice';
+        $response->text = 'RollBot allows you to roll Shadowrun dice';
         $response->attachments[] = [
             'text' => '`help` - Show help' . PHP_EOL
             . '`6 [text]` - Roll 6 dice, with optional text (automatics, '
