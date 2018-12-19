@@ -39,6 +39,7 @@ $userId = $payload->user->id;
 $teamId = $payload->team->id;
 $channelId = $payload->channel->id;
 $originalMessage = $payload->original_message;
+$args = [];
 
 try {
     $user = new User($mongo, $userId, $teamId, $channelId);
@@ -115,9 +116,17 @@ if (($payload->callback_id != $character->handle)
     exit();
 }
 
+if (!$type) {
+    $type = $action;
+    $args = json_decode($_POST['payload'], true);
+} elseif (false !== strpos($type, ' ')) {
+    $args = explode(' ', $type);
+    $type = array_shift($args);
+}
+
 try {
     $class = 'RollBot\\' . ucfirst($type);
-    $roll = new $class($character, []);
+    $roll = new $class($character, $args);
 } catch (\Error $e) {
     error_log($action . ' ' . $type . ' ' . $e->getMessage());
     $response->replaceOriginal = false;
@@ -133,16 +142,19 @@ try {
     exit();
 }
 
-if ($roll instanceof RedisClientInterface) {
-    $roll->setRedisClient($redis);
+if ($roll instanceof GuzzleClientInterface) {
+    $roll->setGuzzleClient(new Guzzle());
 }
 if ($roll instanceof MongoClientInterface) {
     $roll->setMongoClient($mongo);
 }
+if ($roll instanceof RedisClientInterface) {
+    $roll->setRedisClient($redis);
+}
 
-if ($roll::UPDATE_MESSAGE) {
+if (defined(get_class($roll) . '::UPDATE_MESSAGE') && $roll::UPDATE_MESSAGE) {
     $response = (string)$roll;
-    $response = json_decode($response);
+    $originalMessage = json_decode($response);
 
     // Change the original message to not include the button, and grey out the
     // coloring.
@@ -151,6 +163,7 @@ if ($roll::UPDATE_MESSAGE) {
         $originalMessage->attachments[0]->color
     );
     $originalMessage->attachments[] = $response->attachments[0];
+    $originalMessage->response_type = 'in_channel';
     echo json_encode($originalMessage);
     exit();
 }

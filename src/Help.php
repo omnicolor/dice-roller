@@ -43,7 +43,8 @@ class Help
         ];
         $response->attachments[] = [
             'title' => 'Magic Rolls',
-            'text' => '`drain {spellId} {force} {hits} {reckless?}` - Try to '
+            'text' => '`cast` - Start dialog to cast a spell' . PHP_EOL
+            . '`drain {spellId} {force} {hits} {reckless?}` - Try to '
             . 'resist drain',
         ];
         $response->attachments[] = [

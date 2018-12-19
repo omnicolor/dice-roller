@@ -77,10 +77,6 @@ $mongo = new \MongoDB\Client(
         $config['mongo']['host']
     )
 );
-if (isset($_POST['payload'])) {
-    require 'button.php';
-    exit();
-}
 
 if (!isset($_POST['user_id'], $_POST['team_id'], $_POST['channel_id'])) {
     header('Content-Type: text/plain');
@@ -196,13 +192,26 @@ if (!is_numeric($args[0])) {
         $response->attachments[] = [
             'color' => 'danger',
             'title' => 'Bad Request',
-            'text' => 'That doesn\'t seem to be a valid command. Try `/roll help`.',
+            'text' => 'That doesn\'t seem to be a valid command. '
+            . 'Try `/roll help`.' . PHP_EOL
+            . $e->getMessage(),
+        ];
+        echo (string)$response;
+        exit();
+    } catch (\Exception $e) {
+        $response->attachments[] = [
+            'color' => 'danger',
+            'title' => 'Bad Request',
+            'text' => $e->getMessage(),
         ];
         echo (string)$response;
         exit();
     }
 } else {
     $roll = new Roll($character, $args);
+}
+if ($roll instanceof GuzzleClientInterface) {
+    $roll->setGuzzleClient(new \GuzzleHttp\Client());
 }
 if ($roll instanceof RedisClientInterface) {
     $roll->setRedisClient($redis);
