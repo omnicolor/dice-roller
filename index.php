@@ -177,7 +177,21 @@ $jwt = (new Builder())
     ->getToken();
 
 if ($characterId) {
-    $character = new Character($characterId, $guzzle, $jwt);
+    try {
+        $character = new Character($characterId, $guzzle, $jwt);
+    } catch (\RuntimeException $e) {
+        $response->attachments[] = [
+            'color' => 'danger',
+            'title' => 'Bad Request',
+            'text' => sprintf(
+                'You don\'t seem to be the owner of character ID: %s',
+                $characterId
+            ),
+        ];
+        echo (string)$response;
+        exit();
+
+    }
 } else {
     $character = new Character();
     $character->handle = 'GM';
