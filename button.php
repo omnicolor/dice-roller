@@ -107,10 +107,14 @@ if (($payload->callback_id != $character->handle)
     && ($payload->callback_id != $campaignId)) {
 
     $response->replaceOriginal = false;
+    $response->deleteOriginal = false;
+    $response->toChannel = false;
     $response->attachments[] = [
         'color' => 'danger',
+        'replace_original' => false,
+        'response_type' => 'ephemeral',
         'title' => 'Bad Request',
-        'text' => 'You can\'t use edge on someone else\'s rolls.',
+        'text' => 'You can\'t click buttons on someone else\'s rolls.',
     ];
     echo (string)$response;
     exit();
