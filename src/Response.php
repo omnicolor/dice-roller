@@ -35,6 +35,10 @@ class Response
      */
     public $replaceOriginal = null;
 
+    /**
+     * Whether to delete the original message this is in response to.
+     * @var boolean
+     */
     public $deleteOriginal = true;
 
     /**
