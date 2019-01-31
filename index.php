@@ -78,6 +78,12 @@ $mongo = new \MongoDB\Client(
     )
 );
 
+header('Access-Control-Allow-Origin: *');
+if ('OPTIONS' === $_SERVER['REQUEST_METHOD']) {
+    echo 'OK';
+    exit();
+}
+
 if (!isset($_POST['user_id'], $_POST['team_id'], $_POST['channel_id'])) {
     header('Content-Type: text/plain');
     echo 'Bad Request', PHP_EOL, PHP_EOL,
@@ -247,5 +253,28 @@ if ($roll instanceof RedisClientInterface) {
 }
 if ($roll instanceof MongoClientInterface) {
     $roll->setMongoClient($mongo);
+}
+if (isset($_POST['to_channel']) && 'true' == $_POST['to_channel']) {
+    $search = [
+        '_id' => new \MongoDB\BSON\ObjectID($character->campaignId),
+    ];
+    $campaign = $mongo->shadowrun->campaigns->findOne($search);
+    if (!isset($campaign['slack-hook'])) {
+        echo 'Could not post to campaign channel';
+        exit();
+    }
+    $body = (string)$roll;
+    $guzzle->request(
+        'POST',
+        $campaign['slack-hook'],
+        [
+            'body' => $body,
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ],
+        ]
+    );
+    echo $roll;
+    exit();
 }
 echo $roll;
