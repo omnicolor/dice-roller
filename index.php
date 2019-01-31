@@ -113,6 +113,14 @@ try {
     // The user is not registered, is the channel registered?
     $campaign = loadCampaign($mongo, $_POST['team_id'], $_POST['channel_id']);
     if (!$campaign) {
+        error_log(
+            sprintf(
+                'ROLLER: %s (%s) tried to use roller in channel (%s)',
+                $_POST['user_name'],
+                $_POST['user_id'],
+                $_POST['channel_id']
+            )
+        );
         $response->attachments[] = [
             'color' => 'danger',
             'title' => 'Bad Request',
@@ -156,6 +164,14 @@ foreach ($user->slack as $slack) {
     }
 }
 if (!$campaignId) {
+    error_log(
+        sprintf(
+            'ROLLER: %s (%s) tried to use roller in channel (%s)',
+            $_POST['user_name'],
+            $_POST['user_id'],
+            $_POST['channel_id']
+        )
+    );
     sendUnregisteredResponse(
         $config['web'],
         $response,
@@ -190,7 +206,6 @@ if ($characterId) {
         ];
         echo (string)$response;
         exit();
-
     }
 } else {
     $character = new Character();
