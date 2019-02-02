@@ -11,12 +11,12 @@ use Commlink\Character;
 /**
  * Roll an attribute-only test for the character.
  */
-class Judge
-    extends Roll
-    implements MongoClientInterface, RedisClientInterface
+class Judge extends Roll
 {
     /**
      * Build a judge intentions test.
+     * @param Character $character
+     * @param array $unused
      */
     public function __construct(Character $character, array $unused)
     {
