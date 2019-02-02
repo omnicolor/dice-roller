@@ -42,6 +42,11 @@ class Help
             . '`blitz` - Use Edge to Blitz and roll 5 dice',
         ];
         $response->attachments[] = [
+            'title' => 'Combat Rolls',
+            'text' => '`soak` - Roll your soak (body, armor, qualities, magic)'
+            . PHP_EOL,
+        ];
+        $response->attachments[] = [
             'title' => 'Magic Rolls',
             'text' => '`cast` - Start dialog to cast a spell' . PHP_EOL
             . '`drain {spellId} {force} {hits} {reckless?}` - Try to '
