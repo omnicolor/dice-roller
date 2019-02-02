@@ -43,8 +43,8 @@ class Help
         ];
         $response->attachments[] = [
             'title' => 'Combat Rolls',
-            'text' => '`soak` - Roll your soak (body, armor, qualities, magic)'
-            . PHP_EOL,
+            'text' => '`soak {AP=0}` - Roll your soak (body, armor, qualities, '
+            . 'magic) with optional armor penetration' . PHP_EOL,
         ];
         $response->attachments[] = [
             'title' => 'Magic Rolls',
