@@ -71,7 +71,8 @@ class Help
             'title' => 'Misc Commands',
             'text' => '`campaign` - Return information about the campaign'
             . PHP_EOL
-            . '`stats` - Show my character\'s stat block',
+            . '`stats` - Show my character\'s stat block' . PHP_EOL
+            . '`addiction` - Start a dialog for avoiding addiction',
         ];
         return (string)$response;
     }
