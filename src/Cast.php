@@ -50,7 +50,8 @@ class Cast
      * @param \Commlink\Character $character
      * @param array $args
      */
-    public function __construct(Character $character, array $args) {
+    public function __construct(Character $character, array $args)
+    {
         $this->character = $character;
 
         if (isset($args['type'])
