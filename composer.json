@@ -18,7 +18,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Commlink\\": "/opt/www/commlink.stg/api/classes",
+            "Commlink\\": "/mnt/sys/www/commlink/api/classes",
             "RollBot\\": "src"
         }
     }
