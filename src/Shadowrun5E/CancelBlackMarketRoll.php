@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
@@ -12,8 +13,7 @@ use RollBot\Response;
  * Handle a user trying to cancel a Black Market negotiation they've tried to
  * start.
  */
-class CancelBlackMarketRoll
-    implements MongoClientInterface
+class CancelBlackMarketRoll implements MongoClientInterface
 {
     use MongoClientTrait;
 
@@ -76,7 +76,7 @@ class CancelBlackMarketRoll
         $response = new Response();
         $response->toChannel = true;
         try {
-        $this->cancelBlackMarket();
+            $this->cancelBlackMarket();
         } catch (\RuntimeException $e) {
             $response->attachments[] = [
                 'color' => 'danger',

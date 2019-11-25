@@ -1,12 +1,10 @@
 <?php
-/**
- * Trait for adding a Mongo client to a Command.
- */
 
 declare(strict_types=1);
+
 namespace RollBot;
 
-use \MongoDB\Client;
+use MongoDB\Client;
 
 /**
  * Trait for adding a Mongo client to a Command.

@@ -1,12 +1,10 @@
 <?php
-/**
- * Trait for adding a Guzzle client to a Command.
- */
 
 declare(strict_types=1);
+
 namespace RollBot;
 
-use \GuzzleHttp\Client;
+use GuzzleHttp\Client;
 
 /**
  * Trait for adding a Guzzle client to a Command.

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
@@ -14,7 +15,7 @@ use RollBot\Response;
  */
 class SecondRoll extends Number
 {
-    const UPDATE_MESSAGE = true;
+    public const UPDATE_MESSAGE = true;
 
     /**
      * Decrement a character's remaining edge.

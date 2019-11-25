@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Shadowrun5E;
 
 use RollBot\Response;

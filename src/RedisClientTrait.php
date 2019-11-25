@@ -1,12 +1,10 @@
 <?php
-/**
- * Trait for adding a Redis client to a Command.
- */
 
 declare(strict_types=1);
+
 namespace RollBot;
 
-use \Predis\Client;
+use Predis\Client;
 
 /**
  * Trait for adding a Redis client to a Command.

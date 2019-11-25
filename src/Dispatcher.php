@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot;
 
 use Commlink\Character;
@@ -241,10 +242,11 @@ class Dispatcher
         }
         $characterId = null;
         foreach ($this->user->slack as $slack) {
-            if ($this->userId === $slack->user_id &&
+            if (
+                $this->userId === $slack->user_id &&
                 $this->teamId === $slack->team_id &&
-                $this->channelId === $slack->channel_id) {
-
+                $this->channelId === $slack->channel_id
+            ) {
                 $characterId = $slack->character_id;
                 break;
             }
@@ -264,7 +266,11 @@ class Dispatcher
 
         if ($characterId) {
             try {
-                $character = new \Commlink\Character($characterId, $guzzle, $jwt);
+                $character = new \Commlink\Character(
+                    $characterId,
+                    $guzzle,
+                    $jwt
+                );
             } catch (\RuntimeException $e) {
                 throw new Exception\BadRequestException(sprintf(
                     'You don\'t seem to be the owner of character ID: %s',
@@ -281,7 +287,8 @@ class Dispatcher
 
         try {
             $class = sprintf(
-                'RollBot\\Shadowrun5E\\%sRoll', ucfirst($this->args[0])
+                'RollBot\\Shadowrun5E\\%sRoll',
+                ucfirst($this->args[0])
             );
             return new $class($character, $this->args);
         } catch (\Error $unused) {

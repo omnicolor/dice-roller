@@ -1,8 +1,12 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot;
 
+/**
+ * Representation of a campaign.
+ */
 class Campaign
 {
     /**

@@ -1,12 +1,13 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
-use \RollBot\RedisClientInterface;
-use \RollBot\RedisClientTrait;
-use \RollBot\Response;
+use RollBot\RedisClientInterface;
+use RollBot\RedisClientTrait;
+use RollBot\Response;
 
 /**
  * Handle a user trying to roll initiative.
@@ -71,7 +72,7 @@ class InitRoll implements RedisClientInterface
     protected function roll(): InitRoll
     {
         $this->initiative = $this->base;
-        for ($i = 0; $i < $this->dice; $i ++) {
+        for ($i = 0; $i < $this->dice; $i++) {
             $roll = random_int(1, 6);
             $this->rolls[] = (string)$roll;
             $this->initiative += $roll;

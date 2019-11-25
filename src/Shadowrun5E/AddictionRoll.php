@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
@@ -15,16 +16,15 @@ use RollBot\Response;
 /**
  * Handle a character making an addiction test.
  */
-class AddictionRoll
-    implements GuzzleClientInterface, MongoClientInterface, RedisClientInterface
+class AddictionRoll implements GuzzleClientInterface, MongoClientInterface, RedisClientInterface
 {
     use GuzzleClientTrait;
     use MongoClientTrait;
     use RedisClientTrait;
 
-    const PSYCHOLOGICAL = 1;
-    const PHYSIOLOGICAL = 2;
-    const BOTH = 3;
+    public const PSYCHOLOGICAL = 1;
+    public const PHYSIOLOGICAL = 2;
+    public const BOTH = 3;
 
     /**
      * Current character.
@@ -444,7 +444,6 @@ class AddictionRoll
         ];
         $response->attachments[] = $attachment;
         return $response;
-
     }
 
     /**

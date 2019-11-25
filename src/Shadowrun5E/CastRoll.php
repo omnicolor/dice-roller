@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
@@ -16,14 +17,13 @@ use RollBot\Response;
 /**
  * Handle the character wanting to cast a spell.
  */
-class CastRoll
-    implements GuzzleClientInterface, MongoClientInterface, RedisClientInterface
+class CastRoll implements GuzzleClientInterface, MongoClientInterface, RedisClientInterface
 {
     use GuzzleClientTrait;
     use MongoClientTrait;
     use RedisClientTrait;
 
-    const UPDATE_MESSAGE = false;
+    public const UPDATE_MESSAGE = false;
 
     /**
      * Current character
@@ -58,11 +58,13 @@ class CastRoll
     {
         $this->character = $character;
 
-        if (isset($args['type'])
+        if (
+            isset($args['type'])
             && !strpos(
                 $args['actions'][0]['selected_options'][0]['value'],
                 '|'
-            )) {
+            )
+        ) {
             // At least past the first stage.
             $this->spell = new Spell($args['actions'][0]['selected_options'][0]['value']);
         } elseif (isset($args['type'])) {

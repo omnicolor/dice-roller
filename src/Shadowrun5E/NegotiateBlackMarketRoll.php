@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
@@ -242,7 +243,7 @@ class NegotiateBlackMarketRoll implements MongoClientInterface
      */
     protected function prettifyRolls(array $rolls): array
     {
-        array_walk($rolls, function(&$value, $key) {
+        array_walk($rolls, function (&$value, $key) {
             if ($value >= 5) {
                 $value = sprintf('*%d*', $value);
             } elseif ($value == 1) {

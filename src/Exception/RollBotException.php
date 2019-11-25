@@ -1,11 +1,12 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Exception;
 
 abstract class RollBotException extends \Exception
 {
-    const COLOR_DANGER = 'danger';
+    public const COLOR_DANGER = 'danger';
 
     protected $color;
     protected $title;

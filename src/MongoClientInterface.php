@@ -1,12 +1,10 @@
 <?php
-/**
- * Interface for Roll commands that need a Mongo client to work.
- */
 
 declare(strict_types=1);
+
 namespace RollBot;
 
-use \MongoDB\Client;
+use MongoDB\Client;
 
 /**
  * Interface for commands that use Mongo.

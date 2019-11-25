@@ -1,12 +1,10 @@
 <?php
-/**
- * Interface for Commands that need a Guzze client to work.
- */
 
 declare(strict_types=1);
+
 namespace RollBot;
 
-use \GuzzleHttp\Client;
+use GuzzleHttp\Client;
 
 /**
  * Interface for commands that use Guzzle.

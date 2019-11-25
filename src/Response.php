@@ -1,9 +1,7 @@
 <?php
-/**
- * Response object for interacting with Slack
- */
 
 declare(strict_types=1);
+
 namespace RollBot;
 
 /**

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Expanse;
 
 use MongoDB\Client as Mongo;

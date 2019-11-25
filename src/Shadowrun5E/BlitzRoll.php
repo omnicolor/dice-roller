@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
@@ -13,13 +14,12 @@ use RollBot\Response;
 /**
  * Handle a user trying to roll initiative with Blitz Edge Action.
  */
-class BlitzRoll
-    implements MongoClientInterface, RedisClientInterface
+class BlitzRoll implements MongoClientInterface, RedisClientInterface
 {
     use MongoClientTrait;
     use RedisClientTrait;
 
-    const UPDATE_MESSAGE = false;
+    public const UPDATE_MESSAGE = false;
 
     /**
      * Character's base initiative.
@@ -102,7 +102,7 @@ class BlitzRoll
             throw new \RuntimeException('out');
         }
         $this->initiative = $this->base;
-        for ($i = 0; $i < $this->dice; $i ++) {
+        for ($i = 0; $i < $this->dice; $i++) {
             $roll = random_int(1, 6);
             $this->rolls[] = $roll;
             $this->initiative += $roll;

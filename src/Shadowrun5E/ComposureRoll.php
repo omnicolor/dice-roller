@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
@@ -12,9 +13,7 @@ use RollBot\RedisClientTrait;
 /**
  * Roll a composure test for the character.
  */
-class ComposureRoll
-    extends Number
-    implements MongoClientInterface, RedisClientInterface
+class ComposureRoll extends Number implements MongoClientInterface, RedisClientInterface
 {
     use MongoClientTrait;
     use RedisClientTrait;

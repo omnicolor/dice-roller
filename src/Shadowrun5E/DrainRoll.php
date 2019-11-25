@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
@@ -109,7 +110,7 @@ class DrainRoll
      */
     protected function prettifyRolls(): DrainRoll
     {
-        array_walk($this->rolls, function(&$value, $key) {
+        array_walk($this->rolls, function (&$value, $key) {
             if ($value >= 5) {
                 $value = sprintf('*%d*', $value);
             }
