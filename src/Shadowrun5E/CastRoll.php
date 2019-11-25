@@ -1,18 +1,22 @@
 <?php
-/**
- * Cast a spell.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
 use Commlink\Spell;
+use RollBot\GuzzleClientInterface;
+use RollBot\GuzzleClientTrait;
+use RollBot\MongoClientInterface;
+use RollBot\MongoClientTrait;
+use RollBot\RedisClientInterface;
+use RollBot\RedisClientTrait;
+use RollBot\Response;
 
 /**
  * Handle the character wanting to cast a spell.
  */
-class Cast
+class CastRoll
     implements GuzzleClientInterface, MongoClientInterface, RedisClientInterface
 {
     use GuzzleClientTrait;

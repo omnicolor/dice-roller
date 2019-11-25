@@ -1,18 +1,17 @@
 <?php
-/**
- * Character wants to make their negotiation roll.
- */
 
 declare(strict_types=1);
 namespace RollBot;
 
 use Commlink\Character;
+use RollBot\MongoClientInterface;
+use RollBot\MongoClientTrait;
+use RollBot\Response;
 
 /**
  * Handle the character trying to roll negotiation.
  */
-class NegotiateBlackMarket
-    implements MongoClientInterface
+class NegotiateBlackMarketRoll implements MongoClientInterface
 {
     use MongoClientTrait;
 

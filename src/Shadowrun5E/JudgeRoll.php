@@ -1,17 +1,15 @@
 <?php
-/**
- * Roll a judge intentions test.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\Response;
 
 /**
  * Roll an attribute-only test for the character.
  */
-class Judge extends Roll
+class Judge extends Number
 {
     /**
      * Build a judge intentions test.

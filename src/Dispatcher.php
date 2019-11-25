@@ -281,10 +281,11 @@ class Dispatcher
             $class = sprintf(
                 'RollBot\\Shadowrun5E\\%sRoll', ucfirst($this->args[0])
             );
-            return new $class();
+            return new $class($character, $this->args);
         } catch (\Error $unused) {
             // Ignore the class not being found, they may have wanted
             // a generic roll.
+            $this->log->debug($unused->getMessage());
             return null;
         }
     }

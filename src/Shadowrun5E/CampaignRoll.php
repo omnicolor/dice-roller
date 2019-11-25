@@ -1,17 +1,17 @@
 <?php
-/**
- * Show information about the Campaign attached to the channel.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\MongoClientInterface;
+use RollBot\MongoClientTrait;
+use RollBot\Response;
 
 /**
  * Handle the user wanting information about the campaign.
  */
-class Campaign implements MongoClientInterface
+class CampaignRoll implements MongoClientInterface
 {
     use MongoClientTrait;
 
@@ -48,6 +48,7 @@ class Campaign implements MongoClientInterface
             '_id' => new \MongoDB\BSON\ObjectID($this->campaignId),
         ];
         $campaign = $this->mongo->shadowrun->campaigns->findOne($search);
+        error_log(print_r($campaign, true));
         $response = new Response();
         $response->attachments[] = [
             'title' => $campaign->name,

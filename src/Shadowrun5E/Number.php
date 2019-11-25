@@ -1,7 +1,4 @@
 <?php
-/**
- * Roll dice with optional descriptive text.
- */
 
 declare(strict_types=1);
 namespace RollBot\Shadowrun5E;
@@ -16,8 +13,7 @@ use RollBot\Response;
 /**
  * Handle the character wanting to roll some dice.
  */
-class Number
-    implements MongoClientInterface, RedisClientInterface
+class Number implements MongoClientInterface, RedisClientInterface
 {
     use MongoClientTrait;
     use RedisClientTrait;

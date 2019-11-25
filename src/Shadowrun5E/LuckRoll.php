@@ -1,19 +1,14 @@
 <?php
-/**
- * Roll a luck test.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
 
 /**
  * Roll an attribute-only test for the character.
  */
-class Luck
-    extends Roll
-    implements MongoClientInterface, RedisClientInterface
+class LuckRoll extends Number
 {
     /**
      * Build a luck test.

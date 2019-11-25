@@ -1,19 +1,15 @@
 <?php
-/**
- * Roll a lifting/carrying test.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\Response;
 
 /**
  * Roll an attribute-only test for the character.
  */
-class Lifting
-    extends Roll
-    implements MongoClientInterface, RedisClientInterface
+class LiftingRoll extends Number
 {
     /**
      * Build a lifting/carrying test.

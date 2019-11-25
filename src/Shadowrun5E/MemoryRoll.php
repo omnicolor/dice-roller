@@ -1,19 +1,14 @@
 <?php
-/**
- * Roll a memory test.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
 
 /**
  * Roll an attribute-only test for the character.
  */
-class Memory
-    extends Roll
-    implements MongoClientInterface, RedisClientInterface
+class MemoryRoll extends Number
 {
     /**
      * Build a memory test.

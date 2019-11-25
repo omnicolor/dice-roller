@@ -1,17 +1,21 @@
 <?php
-/**
- * Roll an addiction resistance test.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\GuzzleClientInterface;
+use RollBot\GuzzleClientTrait;
+use RollBot\MongoClientInterface;
+use RollBot\MongoClientTrait;
+use RollBot\RedisClientInterface;
+use RollBot\RedisClientTrait;
+use RollBot\Response;
 
 /**
  * Handle a character making an addiction test.
  */
-class Addiction
+class AddictionRoll
     implements GuzzleClientInterface, MongoClientInterface, RedisClientInterface
 {
     use GuzzleClientTrait;

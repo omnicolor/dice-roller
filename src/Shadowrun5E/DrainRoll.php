@@ -1,10 +1,7 @@
 <?php
-/**
- * Character wants to resist drain.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
 use Commlink\Spell;
@@ -12,7 +9,7 @@ use Commlink\Spell;
 /**
  * Handle a character wanting to resist drain.
  */
-class Drain
+class DrainRoll
 {
     /**
      * Character object.

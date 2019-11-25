@@ -1,20 +1,25 @@
 <?php
-/**
- * Character wants to roll initiative.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\MongoClientInterface;
+use RollBot\MongoClientTrait;
+use RollBot\RedisClientInterface;
+use RollBot\RedisClientTrait;
+use RollBot\Response;
 
 /**
- * Handle a user trying to roll initiative.
+ * Handle a user trying to roll initiative with Blitz Edge Action.
  */
-class Init
-    implements RedisClientInterface
+class BlitzRoll
+    implements MongoClientInterface, RedisClientInterface
 {
+    use MongoClientTrait;
     use RedisClientTrait;
+
+    const UPDATE_MESSAGE = false;
 
     /**
      * Character's base initiative.
@@ -27,6 +32,18 @@ class Init
      * @var string
      */
     protected $campaignId;
+
+    /**
+     * Character object.
+     * @var \Commlink\Character
+     */
+    protected $character;
+
+    /**
+     * Number of dice to roll. 5 because of Blitz.
+     * @var int
+     */
+    protected $dice = 5;
 
     /**
      * Character's rolled initiative.
@@ -43,23 +60,42 @@ class Init
     /**
      * Build a new initiative roller.
      * @param \Commlink\Character $character
-     * @param array $args
+     * @param array $unused
      */
-    public function __construct(Character $character, array $args)
+    public function __construct(Character $character, array $unused)
     {
         $this->name = $character->handle;
+        $this->character = $character;
         $this->campaignId = $character->campaignId;
         $this->base = $character->getReaction() + $character->getIntuition()
             + $character->getModifiedAttribute('initiative');
-        $this->dice = 1 + $character->getModifiedAttribute('initiative-dice');
+    }
+
+    /**
+     * Decrement a character's remaining edge.
+     * @return Roll
+     */
+    protected function updateEdge(): Blitz
+    {
+        $search = ['_id' => new \MongoDB\BSON\ObjectID($this->character->id)];
+        $update = [
+            '$set' => [
+                'edgeCurrent' => $this->character->edgeCurrent - 1,
+            ],
+        ];
+        $this->mongo->shadowrun->characters->updateOne($search, $update);
+        return $this;
     }
 
     /**
      * Roll the character's initiative.
      * @return Roll
      */
-    protected function roll(): Init
+    protected function roll(): Blitz
     {
+        if (!$this->character->edgeCurrent) {
+            throw new \RuntimeException('out');
+        }
         $this->initiative = $this->base;
         for ($i = 0; $i < $this->dice; $i ++) {
             $roll = random_int(1, 6);
@@ -67,6 +103,13 @@ class Init
             $this->initiative += $roll;
         }
 
+        $lastRoll = $this->redis->del(
+            sprintf(
+                'last-roll.%s',
+                strtolower(str_replace(' ', '_', $this->name))
+            )
+        );
+        $this->updateEdge();
         return $this;
     }
 
@@ -77,6 +120,8 @@ class Init
     public function __toString(): string
     {
         $response = new Response();
+        $response->toChannel = false;
+        $response->replaceOriginal = false;
         $initState = $this->redis->get(
             sprintf('combat.%s', $this->campaignId)
         );
@@ -132,7 +177,17 @@ class Init
             return (string)$response;
         }
 
-        $this->roll();
+        try {
+            $this->roll();
+        } catch (\RuntimeException $e) {
+            $response->attachments[] = [
+                'color' => 'danger',
+                'title' => 'No More Edge',
+                'text' => 'Tough luck chummer, you\'re out of edge. You\'ll '
+                . 'have to roll initiative normally.',
+            ];
+            return (string)$response;
+        }
         $combatants[$index]->initiative = $this->initiative;
         $this->redis->set($key, json_encode($combatants));
         $response->attachments[] = [
@@ -143,21 +198,13 @@ class Init
                 $this->initiative
             ),
             'footer' => sprintf(
-                '%d+%dd6: %s',
+                '%d+%dd6: %s, %d edge left',
                 $this->base,
                 $this->dice,
-                implode(' ', $this->rolls)
+                implode(' ', $this->rolls),
+                $this->character->edgeCurrent - 1
             ),
         ];
         return (string)$response;
-    }
-
-    /**
-     * Fix a character's handle to work as an ID.
-     * @return string
-     */
-    protected function fixHandle(): string
-    {
-        return strtolower(str_replace(' ', '_', $this->name));
     }
 }

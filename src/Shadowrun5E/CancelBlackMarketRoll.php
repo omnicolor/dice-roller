@@ -1,18 +1,18 @@
 <?php
-/**
- * Character wants to cancel their Black Market roll.
- */
 
 declare(strict_types=1);
 namespace RollBot;
 
 use Commlink\Character;
+use RollBot\MongoClientInterface;
+use RollBot\MongoClientTrait;
+use RollBot\Response;
 
 /***
  * Handle a user trying to cancel a Black Market negotiation they've tried to
  * start.
  */
-class CancelBlackMarket
+class CancelBlackMarketRoll
     implements MongoClientInterface
 {
     use MongoClientTrait;

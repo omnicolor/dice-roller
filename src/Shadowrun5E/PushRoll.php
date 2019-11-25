@@ -1,12 +1,10 @@
 <?php
-/**
- * Roll dice with pre-edge.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\Response;
 
 /**
  * Handle a user asking to roll some dice with pre-edge.
@@ -14,13 +12,8 @@ use Commlink\Character;
  * Pushing the limit would add the character's edge to their dice pool, ignore
  * the test's limit, and use the Rule of Six (exploding sixes).
  */
-class Push
-    extends Roll
-    implements MongoClientInterface, RedisClientInterface
+class PushRoll extends Number
 {
-    use MongoClientTrait;
-    use RedisClientTrait;
-
     /**
      * Character
      * @var \Commlink\Character
@@ -51,7 +44,7 @@ class Push
      * Decrement a character's remaining edge.
      * @return Roll
      */
-    protected function updateEdge(): Roll
+    protected function updateEdge(): PushRoll
     {
         $search = ['_id' => new \MongoDB\BSON\ObjectID($this->character->id)];
         $update = [
@@ -68,7 +61,7 @@ class Push
      * @return Roll
      * @throws \RuntimeException if the character is out of edge
      */
-    protected function roll(): Roll
+    protected function roll(): Number
     {
         if (!$this->character->edgeCurrent) {
             throw new \RuntimeException();
@@ -174,10 +167,10 @@ class Push
             );
         }
         $color = 'good';
-        if ($glitch) {
+        if ($this->glitch) {
             $color = 'warning';
             $title .= ', glitched';
-        } elseif (0 === $successes) {
+        } elseif (0 === $this->successes) {
             $color = 'danger';
         }
         if ($this->text) {

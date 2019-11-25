@@ -1,12 +1,10 @@
 <?php
-/**
- * Second chance: Re-roll failures.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\Response;
 
 /**
  * Handle a user requesting to use the Second Chance edge effect.
@@ -14,9 +12,7 @@ use Commlink\Character;
  * Re-rolls any non-successes from the previous roll, but does not remove
  * glitches. Sixes do not explode and limits still count.
  */
-class Second
-    extends Roll
-    implements MongoClientInterface, RedisClientInterface
+class SecondRoll extends Number
 {
     const UPDATE_MESSAGE = true;
 
@@ -24,7 +20,7 @@ class Second
      * Decrement a character's remaining edge.
      * @return Roll
      */
-    protected function updateEdge(): Roll
+    protected function updateEdge(): SecondRoll
     {
         $search = ['_id' => new \MongoDB\BSON\ObjectID($this->character->id)];
         $update = [
@@ -40,9 +36,9 @@ class Second
      * Load the last roll from Redis, then re-roll non-successes.
      * @throws \LogicException If trying to second chance a critical glitch
      * @throws \RuntimeException If trying to second chance without edge or a last roll
-     * @return Roll
+     * @return Number
      */
-    protected function roll(): Roll
+    protected function roll(): Number
     {
         if (!$this->character->edgeCurrent) {
             throw new \RuntimeException('out');
