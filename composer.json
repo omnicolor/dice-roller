@@ -1,14 +1,25 @@
 {
-    "name": "omnicolor/dice-roller",
-    "description": "Dice roller for Shadowrun 5E",
-    "type": "project",
-    "license": "MIT",
     "authors": [
         {
             "name": "Omni Adams",
             "email": "omni@digitaldarkness.com"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "Commlink\\": "/mnt/sys/www/commlink/api/classes",
+            "RollBot\\": "src"
+        }
+    },
+    "config": {
+        "bin-dir": "bin",
+        "sort-packages": true
+    },
+    "description": "Dice roller for Slack",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "name": "omnicolor/dice-roller",
+    "prefer-stable": true,
     "require": {
         "predis/predis": "^1.1",
         "mongodb/mongodb": "^1.2",
@@ -16,10 +27,5 @@
         "guzzlehttp/guzzle": "^6.3",
         "monolog/monolog": "^2.0"
     },
-    "autoload": {
-        "psr-4": {
-            "Commlink\\": "/mnt/sys/www/commlink/api/classes",
-            "RollBot\\": "src"
-        }
-    }
+    "type": "project"
 }
