@@ -6,7 +6,7 @@
 declare(strict_types=1);
 namespace RollBot;
 
-use \MongoDb\Client;
+use \MongoDB\Client;
 
 /**
  * Interface for commands that use Mongo.
@@ -15,7 +15,7 @@ interface MongoClientInterface
 {
     /**
      * Set the Mongo client.
-     * @param \MongoDb\Client $client
+     * @param \MongoDB\Client $client
      * @return MongoClientInterface
      */
     public function setMongoClient(Client $client): MongoClientInterface;

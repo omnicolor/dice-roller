@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
 use RollBot\MongoClientInterface;
@@ -23,7 +23,7 @@ class NegotiateBlackMarketRoll implements MongoClientInterface
 
     /**
      * Array of individual dice rolls.
-     * @var string[]
+     * @var string[]|int[]
      */
     protected $rolls = [];
 
@@ -59,7 +59,7 @@ class NegotiateBlackMarketRoll implements MongoClientInterface
 
     /**
      * Rolls that the availability test rolls.
-     * @var string[]
+     * @var string[]|int[]
      */
     protected $availRolls = [];
 
@@ -89,7 +89,7 @@ class NegotiateBlackMarketRoll implements MongoClientInterface
     protected function getCurrentDate($campaignId): \DateTimeImmutable
     {
         $search = [
-            '_id' => new \MongoDB\BSON\ObjectID($campaignId),
+            '_id' => new \MongoDB\BSON\ObjectId($campaignId),
         ];
         $campaign = $this->mongo->shadowrun->campaigns->findOne($search);
         $date = $campaign['current-date'] ?? $campaign['start-date'];
@@ -104,7 +104,7 @@ class NegotiateBlackMarketRoll implements MongoClientInterface
     protected function findBlackMarket(): \MongoDB\Model\BSONDocument
     {
         $currentDate = $this->getCurrentDate($this->character->campaignId);
-        $search = ['_id' => new \MongoDB\BSON\ObjectID($this->character->id)];
+        $search = ['_id' => new \MongoDB\BSON\ObjectId($this->character->id)];
         $blackMarkets = $this->mongo->shadowrun->characters->findOne($search);
         $blackMarkets = $blackMarkets['blackMarket'];
         if (0 === count($blackMarkets)) {
@@ -197,9 +197,9 @@ class NegotiateBlackMarketRoll implements MongoClientInterface
      * Roll the dice, keeping track of things.
      * @param int $dice
      * @param int $avail
-     * @return NegotiateBlackMarket
+     * @return NegotiateBlackMarketRoll
      */
-    protected function roll(int $dice, int $avail): NegotiateBlackMarket
+    protected function roll(int $dice, int $avail): NegotiateBlackMarketRoll
     {
         // Roll the dice, keeping track of successes and failures.
         for ($i = 0; $i < $dice; $i++) {
@@ -237,8 +237,8 @@ class NegotiateBlackMarketRoll implements MongoClientInterface
 
     /**
      * Bold successes, strike out failures in the roll list.
-     * @param string[] $rolls
-     * @return string[]
+     * @param string[]|int[] $rolls
+     * @return string[]|int[]
      */
     protected function prettifyRolls(array $rolls): array
     {
@@ -328,7 +328,7 @@ class NegotiateBlackMarketRoll implements MongoClientInterface
         $grease = min($grease, 12);
         $avail = (int)$blackMarket['avail'];
         $dice = $negotiation + $this->character->getCharisma() + $grease;
-        $this->roll($dice, $avail);
+        $this->roll((int)$dice, $avail);
         $this->rolls = $this->prettifyRolls($this->rolls);
 
         if ($this->criticalGlitch) {

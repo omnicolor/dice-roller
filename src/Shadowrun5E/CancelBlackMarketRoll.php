@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
 use RollBot\MongoClientInterface;
@@ -26,21 +26,20 @@ class CancelBlackMarketRoll
     /**
      * Build a new object to cancel a black market attempt.
      * @param \Commlink\Character $character
-     * @param array $unused
      */
-    public function __construct(Character $character, array $unused)
+    public function __construct(Character $character)
     {
         $this->character = $character;
     }
 
     /**
      * Update Mongo to remove the first unrolled black market entry.
-     * @return CancelBlackMarket
+     * @return CancelBlackMarketRoll
      * @throws \RuntimeException
      */
-    protected function cancelBlackMarket(): CancelBlackMarket
+    protected function cancelBlackMarket(): CancelBlackMarketRoll
     {
-        $search = ['_id' => new \MongoDB\BSON\ObjectID($this->character->id)];
+        $search = ['_id' => new \MongoDB\BSON\ObjectId($this->character->id)];
         $blackMarkets = $this->mongo->shadowrun->characters->findOne($search);
         $blackMarkets = $blackMarkets['blackMarket'];
         if (0 === count($blackMarkets)) {
@@ -55,11 +54,13 @@ class CancelBlackMarketRoll
             break;
         }
         if (false === $cancel) {
-            throw new \RuntimeException('All black market searches have been started');
+            throw new \RuntimeException(
+                'All black market searches have been started'
+            );
         }
         $update = [
             '$pull' => [
-                'blackMarket' => $blackMarkets[$key],
+                'blackMarket' => $blackMarkets[$cancel],
             ],
         ];
         $this->mongo->shadowrun->characters->updateOne($search, $update);

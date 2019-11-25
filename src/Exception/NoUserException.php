@@ -62,7 +62,7 @@ class NoUserException extends RollBotException implements ActionsInterface
     /**
      * Set the Slack channel ID.
      * @param string $channelId
-     * @return \RollBot\NoUserException
+     * @return \RollBot\Exception\NoUserException
      */
     public function setChannelId(string $channelId): NoUserException
     {
@@ -73,7 +73,7 @@ class NoUserException extends RollBotException implements ActionsInterface
     /**
      * Set the Slack team ID.
      * @param string $teamId
-     * @return \RollBot\NoUserException
+     * @return \RollBot\Exception\NoUserException
      */
     public function setTeamId(string $teamId): NoUserException
     {
@@ -84,7 +84,7 @@ class NoUserException extends RollBotException implements ActionsInterface
     /**
      * Set the Slack user ID.
      * @param string $userId
-     * @return \RollBot\NoUserException
+     * @return \RollBot\Exception\NoUserException
      */
     public function setUserId(string $userId): NoUserException
     {
@@ -95,7 +95,7 @@ class NoUserException extends RollBotException implements ActionsInterface
     /**
      * Set the URL to the Commlink frontend.
      * @param string $url
-     * @return \RollBot\NoUserException
+     * @return \RollBot\Exception\NoUserException
      */
     public function setWebUrl(string $url): NoUserException
     {

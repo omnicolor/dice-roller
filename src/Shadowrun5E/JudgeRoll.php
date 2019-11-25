@@ -9,14 +9,13 @@ use RollBot\Response;
 /**
  * Roll an attribute-only test for the character.
  */
-class Judge extends Number
+class JudgeRoll extends Number
 {
     /**
      * Build a judge intentions test.
      * @param Character $character
-     * @param array $unused
      */
-    public function __construct(Character $character, array $unused)
+    public function __construct(Character $character)
     {
         $args = [
             $character->getCharisma() + $character->getIntuition(),

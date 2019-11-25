@@ -5,6 +5,7 @@ namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
 use Commlink\Spell;
+use RollBot\Response;
 
 /**
  * Handle a character wanting to resist drain.
@@ -18,6 +19,12 @@ class DrainRoll
     protected $character;
 
     /**
+     * Number of dice to roll.
+     * @var int
+     */
+    protected $dice;
+
+    /**
      * Force the spell was cast at.
      * @var int
      */
@@ -28,6 +35,12 @@ class DrainRoll
      * @var int
      */
     protected $hits;
+
+    /**
+     * Whether the spell was cast recklessly.
+     * @var bool
+     */
+    protected $reckless;
 
     /**
      * Result of rolling the number of dice.
@@ -74,9 +87,9 @@ class DrainRoll
 
     /**
      * Roll the required number of dice, tracking successes.
-     * @return Drain
+     * @return DrainRoll
      */
-    protected function roll(): Drain
+    protected function roll(): DrainRoll
     {
         // Roll the dice, keeping track of successes.
         for ($i = 0; $i < $this->dice; $i++) {
@@ -92,9 +105,9 @@ class DrainRoll
 
     /**
      * Bold successes in the roll list.
-     * @return Drain
+     * @return DrainRoll
      */
-    protected function prettifyRolls(): Drain
+    protected function prettifyRolls(): DrainRoll
     {
         array_walk($this->rolls, function(&$value, $key) {
             if ($value >= 5) {
@@ -112,7 +125,11 @@ class DrainRoll
      */
     protected function getDrain(): int
     {
-        $appliedDrain = str_replace('F', $this->force, $this->spell->drain);
+        $appliedDrain = str_replace(
+            'F',
+            (string)$this->force,
+            $this->spell->drain
+        );
         $appliedDrain = str_split($appliedDrain);
         if (1 === count($appliedDrain)) {
             $appliedDrain = (int)$appliedDrain[0];

@@ -1,17 +1,17 @@
 <?php
-/**
- * Show the current combat initiative.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\RedisClientInterface;
+use RollBot\RedisClientTrait;
+use RollBot\Response;
 
 /**
  * Show the current combat initiative.
  */
-class Show implements RedisClientInterface
+class ShowRoll implements RedisClientInterface
 {
     use RedisClientTrait;
 
@@ -24,9 +24,8 @@ class Show implements RedisClientInterface
     /**
      * Build a new initiative show-er.
      * @param \Commlink\Character $character
-     * @param array $args
      */
-    public function __construct(Character $character, array $args)
+    public function __construct(Character $character)
     {
         $this->campaignId = $character->campaignId;
     }
@@ -50,6 +49,7 @@ class Show implements RedisClientInterface
             ];
             return (string)$response;
         }
+        $text = '';
         switch ($initState) {
             case 'collecting':
                 $text = 'Waiting for everyone to roll initiative.';

@@ -13,8 +13,9 @@ class LiftingRoll extends Number
 {
     /**
      * Build a lifting/carrying test.
+     * @param \Commlink\Character $character
      */
-    public function __construct(Character $character, array $unused)
+    public function __construct(Character $character)
     {
         $args = [
             $character->getBody() + $character->getStrength(),

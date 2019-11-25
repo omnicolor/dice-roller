@@ -3,6 +3,7 @@
 declare(strict_types=1);
 namespace RollBot;
 
+use Commlink\Character;
 use MongoDB\Client as Mongo;
 use Monolog\Logger;
 use RollBot\Exception\BadRequestException;
@@ -187,7 +188,7 @@ class Dispatcher
     {
         $this->log->debug('Dispatcher::getExpanseRoll');
         if (!$this->user) {
-            $ex = Exception\NoUserException();
+            $ex = new Exception\NoUserException();
             $ex->setChannelId($this->channelId)
                 ->setTeamId($this->teamId)
                 ->setUserId($this->userId)
@@ -195,11 +196,11 @@ class Dispatcher
             throw $ex;
         }
         try {
-        $character = Expanse\Character::loadFromMongo(
-            $this->mongo,
-            $this->campaign->getId(),
-            $this->user->email
-        );
+            $character = Expanse\Character::loadFromMongo(
+                $this->mongo,
+                $this->campaign->getId(),
+                $this->user->email
+            );
         } catch (\RuntimeException $e) {
             // Characters are overrated.
             $character = null;
@@ -238,6 +239,7 @@ class Dispatcher
                 ->setWebUrl($this->config['web']);
             throw $ex;
         }
+        $characterId = null;
         foreach ($this->user->slack as $slack) {
             if ($this->userId === $slack->user_id &&
                 $this->teamId === $slack->team_id &&

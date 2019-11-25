@@ -1,17 +1,15 @@
 <?php
-/**
- * Show stats about the current character.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\Response;
 
 /**
  * Handle the user wanting to see information about their character.
  */
-class Stats
+class StatsRoll
 {
     /**
      * Character.
@@ -22,9 +20,8 @@ class Stats
     /**
      * Build a new Stats object.
      * @param \Commlink\Character $character
-     * @param array $unused
      */
-    public function __construct(Character $character, array $unused)
+    public function __construct(Character $character)
     {
         $this->character = $character;
     }
@@ -59,7 +56,7 @@ class Stats
             if ($this->character->$attribute != $value) {
                 $value = sprintf(
                     '(%d) %d',
-                    $this->character->attribute,
+                    $this->character->$attribute,
                     $value
                 );
             }
@@ -105,7 +102,7 @@ class Stats
             'title' => 'Overflow',
             'value' => sprintf(
                 '%d / %d',
-                $this->character->overflowDamage,
+                $this->character->damageOverflow,
                 $this->character->getOverflowMonitor()
             ),
             'short' => true,

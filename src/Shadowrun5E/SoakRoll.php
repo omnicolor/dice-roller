@@ -1,24 +1,21 @@
 <?php
-/**
- * Roll a character's soak dice.
- */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\Response;
 
 /**
  * Roll soak.
  */
-class Soak extends Roll
+class SoakRoll extends Number
 {
     /**
      * Constructor.
      * @param Character $character
-     * @param array $unused
      */
-    public function __construct(Character $character, array $args)
+    public function __construct(Character $character)
     {
         $ap = $args[1] ?? 0;
         $args = [

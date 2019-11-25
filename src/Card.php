@@ -1,7 +1,4 @@
 <?php
-/**
- * Character wants to draw a card.
- */
 
 declare(strict_types=1);
 namespace RollBot;
@@ -14,11 +11,16 @@ use Commlink\Character;
 class Card
 {
     /**
+     * Character's name.
+     * @var string
+     */
+    protected $name;
+
+    /**
      * Build a new card drawer.
      * @param \Commlink\Character $character
-     * @param array $args
      */
-    public function __construct(Character $character, array $unused)
+    public function __construct(Character $character)
     {
         $this->name = $character->handle;
     }

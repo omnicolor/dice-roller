@@ -28,6 +28,12 @@ class InitRoll implements RedisClientInterface
     protected $campaignId;
 
     /**
+     * Number of dice to roll.
+     * @var int
+     */
+    protected $dice;
+
+    /**
      * Character's rolled initiative.
      * @var int
      */
@@ -40,11 +46,16 @@ class InitRoll implements RedisClientInterface
     protected $name;
 
     /**
+     * Rolls.
+     * @var string[]
+     */
+    protected $rolls;
+
+    /**
      * Build a new initiative roller.
      * @param \Commlink\Character $character
-     * @param array $args
      */
-    public function __construct(Character $character, array $args)
+    public function __construct(Character $character)
     {
         $this->name = $character->handle;
         $this->campaignId = $character->campaignId;
@@ -55,14 +66,14 @@ class InitRoll implements RedisClientInterface
 
     /**
      * Roll the character's initiative.
-     * @return Roll
+     * @return InitRoll
      */
-    protected function roll(): Init
+    protected function roll(): InitRoll
     {
         $this->initiative = $this->base;
         for ($i = 0; $i < $this->dice; $i ++) {
             $roll = random_int(1, 6);
-            $this->rolls[] = $roll;
+            $this->rolls[] = (string)$roll;
             $this->initiative += $roll;
         }
 
@@ -114,12 +125,13 @@ class InitRoll implements RedisClientInterface
             return (string)$response;
         }
         $combatants = json_decode($combatants);
+        $value = null;
         foreach ($combatants as $index => $value) {
             if ($value->name == $this->name) {
                 break;
             }
         }
-        if ($value->initiative) {
+        if ($value && $value->initiative) {
             $response->attachments[] = [
                 'color' => 'danger',
                 'title' => 'Already rolled',

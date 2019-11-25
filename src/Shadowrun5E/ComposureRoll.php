@@ -21,8 +21,9 @@ class ComposureRoll
 
     /**
      * Build a composure test.
+     * @param \Commlink\Character $character
      */
-    public function __construct(Character $character, array $unused)
+    public function __construct(Character $character)
     {
         $args = [
             $character->getCharisma() + $character->getWillpower(),

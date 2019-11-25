@@ -3,6 +3,9 @@
 declare(strict_types=1);
 namespace RollBot;
 
+/**
+ * Generic dice roller.
+ */
 class Generic
 {
     /**
@@ -16,6 +19,12 @@ class Generic
      * @var int
      */
     protected $pips;
+
+    /**
+     * Remaining text in the command.
+     * @var string
+     */
+    protected $remaining;
 
     /**
      * User that threw the dice.

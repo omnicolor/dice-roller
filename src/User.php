@@ -1,7 +1,4 @@
 <?php
-/**
- * Load a user from Mongo.
- */
 
 namespace RollBot;
 
@@ -18,7 +15,7 @@ class User
 
     /**
      * Try to load a user from the database.
-     * @param \MongoDb\Client $mongo
+     * @param \MongoDB\Client $mongo
      * @param string $userId
      * @param string $teamId
      * @param string $channelId
@@ -42,11 +39,13 @@ class User
 
     /**
      * Return a property of the user.
-     *
      * @return mixed
      */
     public function __get(string $name)
     {
+        if (!$this->user) {
+            return null;
+        }
         if (property_exists($this->user, $name)) {
             return $this->user->$name;
         }

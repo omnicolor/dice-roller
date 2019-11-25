@@ -18,11 +18,11 @@ class SecondRoll extends Number
 
     /**
      * Decrement a character's remaining edge.
-     * @return Roll
+     * @return SecondRoll
      */
     protected function updateEdge(): SecondRoll
     {
-        $search = ['_id' => new \MongoDB\BSON\ObjectID($this->character->id)];
+        $search = ['_id' => new \MongoDB\BSON\ObjectId($this->character->id)];
         $update = [
             '$set' => [
                 'edgeCurrent' => $this->character->edgeCurrent - 1,
@@ -36,7 +36,7 @@ class SecondRoll extends Number
      * Load the last roll from Redis, then re-roll non-successes.
      * @throws \LogicException If trying to second chance a critical glitch
      * @throws \RuntimeException If trying to second chance without edge or a last roll
-     * @return Number
+     * @return \RollBot\Shadowrun5E\Number
      */
     protected function roll(): Number
     {
@@ -90,10 +90,10 @@ class SecondRoll extends Number
             }
         }
         $lastRoll = $this->redis->del(
-            sprintf(
+            [sprintf(
                 'last-roll.%s',
                 strtolower(str_replace(' ', '_', $this->name))
-            )
+            )]
         );
         $this->updateEdge();
         return $this;
@@ -180,7 +180,7 @@ class SecondRoll extends Number
         if ($this->glitch) {
             $color = 'warning';
             $title .= ', still glitched';
-        } elseif (0 === $successes) {
+        } elseif (0 === $this->successes) {
             $color = 'danger';
         }
         if ($this->text) {

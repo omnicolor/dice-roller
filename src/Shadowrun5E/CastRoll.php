@@ -45,7 +45,7 @@ class CastRoll
 
     /**
      * Arguments for making a roll.
-     * @var array
+     * @var string
      */
     protected $roll;
 
@@ -196,7 +196,7 @@ class CastRoll
         // need to send a new one to the Slack web hook URL to let everyone see
         // the results.
         $search = [
-            '_id' => new \MongoDB\BSON\ObjectID($this->character->campaignId),
+            '_id' => new \MongoDB\BSON\ObjectId($this->character->campaignId),
         ];
         $campaign = $this->mongo->shadowrun->campaigns->findOne($search);
         $slackHook = $campaign['slack-hook'];

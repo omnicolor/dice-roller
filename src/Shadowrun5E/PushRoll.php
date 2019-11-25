@@ -42,11 +42,11 @@ class PushRoll extends Number
 
     /**
      * Decrement a character's remaining edge.
-     * @return Roll
+     * @return PushRoll
      */
     protected function updateEdge(): PushRoll
     {
-        $search = ['_id' => new \MongoDB\BSON\ObjectID($this->character->id)];
+        $search = ['_id' => new \MongoDB\BSON\ObjectId($this->character->id)];
         $update = [
             '$set' => [
                 'edgeCurrent' => $this->character->edgeCurrent - 1,
@@ -58,7 +58,7 @@ class PushRoll extends Number
 
     /**
      * Roll dice.
-     * @return Roll
+     * @return \RollBot\Shadowrun5E\Number
      * @throws \RuntimeException if the character is out of edge
      */
     protected function roll(): Number
@@ -97,12 +97,12 @@ class PushRoll extends Number
         rsort($this->rolls);
 
         // Second Chance can't be used if you've already used edge on a test.
-        $this->redis->del(
+        $this->redis->del([
             sprintf(
                 'last-roll.%s',
                 strtolower(str_replace(' ', '_', $this->name))
             )
-        );
+        ]);
         $this->updateEdge();
         return $this;
     }

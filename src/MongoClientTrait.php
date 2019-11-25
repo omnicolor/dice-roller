@@ -6,7 +6,7 @@
 declare(strict_types=1);
 namespace RollBot;
 
-use \MongoDb\Client;
+use \MongoDB\Client;
 
 /**
  * Trait for adding a Mongo client to a Command.
@@ -14,13 +14,13 @@ use \MongoDb\Client;
 trait MongoClientTrait
 {
     /**
-     * @var \MongoDb\Client
+     * @var \MongoDB\Client
      */
     protected $mongo;
 
     /**
      * Set the Mongo client.
-     * @param \MongoDb\Client $client
+     * @param \MongoDB\Client $client
      * @return MongoClientInterface
      */
     public function setMongoClient(Client $client): MongoClientInterface

@@ -30,9 +30,8 @@ class CampaignRoll implements MongoClientInterface
     /**
      * Build a new Campaign information object
      * @param \Commlink\Character $character
-     * @param array $unused
      */
-    public function __construct(Character $character, array $unused)
+    public function __construct(Character $character)
     {
         $this->campaignId = $character->campaignId;
         $this->handle = $character->handle;
@@ -45,7 +44,7 @@ class CampaignRoll implements MongoClientInterface
     public function __toString(): string
     {
         $search = [
-            '_id' => new \MongoDB\BSON\ObjectID($this->campaignId),
+            '_id' => new \MongoDB\BSON\ObjectId($this->campaignId),
         ];
         $campaign = $this->mongo->shadowrun->campaigns->findOne($search);
         error_log(print_r($campaign, true));

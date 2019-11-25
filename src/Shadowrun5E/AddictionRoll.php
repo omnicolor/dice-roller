@@ -220,13 +220,13 @@ class AddictionRoll
             $type
         );
         $args = [$dice, $title];
-        $roll = new Roll($this->character, $args);
-        $roll->setMongoClient($this->mongo)
-            ->setRedisClient($this->redis);
+        $roll = new Number($this->character, $args);
+        $roll->setMongoClient($this->mongo);
+        $roll->setRedisClient($this->redis);
         $roll = json_decode((string)$roll);
 
         $search = [
-            '_id' => new \MongoDB\BSON\ObjectID($this->character->campaignId),
+            '_id' => new \MongoDB\BSON\ObjectId($this->character->campaignId),
         ];
         $campaign = $this->mongo->shadowrun->campaigns->findOne($search);
         $slackHook = $campaign['slack-hook'];
@@ -266,7 +266,7 @@ class AddictionRoll
             'text' => 'Roll the other addiction test.',
             'actions' => [],
         ];
-        if ($type === 'phys') {
+        if ($type === 'psychological') {
             $attachment['actions'][] = [
                 'name' => 'addiction',
                 'text' => 'Psychological',
@@ -357,7 +357,7 @@ class AddictionRoll
         // need to send a new one to the Slack web hook URL to let everyone see
         // the results.
         $search = [
-            '_id' => new \MongoDB\BSON\ObjectID($this->character->campaignId),
+            '_id' => new \MongoDB\BSON\ObjectId($this->character->campaignId),
         ];
         $campaign = $this->mongo->shadowrun->campaigns->findOne($search);
         $slackHook = $campaign['slack-hook'];

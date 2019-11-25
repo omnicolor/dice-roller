@@ -65,6 +65,6 @@ class Response
         if ($this->deleteOriginal) {
             $res['delete_original'] = true;
         }
-        return json_encode($res);
+        return (string)json_encode($res);
     }
 }

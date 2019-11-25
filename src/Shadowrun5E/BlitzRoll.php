@@ -58,11 +58,16 @@ class BlitzRoll
     protected $name;
 
     /**
+     * Rolls made.
+     * @var string[]|int[]
+     */
+    protected $rolls;
+
+    /**
      * Build a new initiative roller.
      * @param \Commlink\Character $character
-     * @param array $unused
      */
-    public function __construct(Character $character, array $unused)
+    public function __construct(Character $character)
     {
         $this->name = $character->handle;
         $this->character = $character;
@@ -73,11 +78,11 @@ class BlitzRoll
 
     /**
      * Decrement a character's remaining edge.
-     * @return Roll
+     * @return BlitzRoll
      */
-    protected function updateEdge(): Blitz
+    protected function updateEdge(): BlitzRoll
     {
-        $search = ['_id' => new \MongoDB\BSON\ObjectID($this->character->id)];
+        $search = ['_id' => new \MongoDB\BSON\ObjectId($this->character->id)];
         $update = [
             '$set' => [
                 'edgeCurrent' => $this->character->edgeCurrent - 1,
@@ -89,9 +94,9 @@ class BlitzRoll
 
     /**
      * Roll the character's initiative.
-     * @return Roll
+     * @return BlitzRoll
      */
-    protected function roll(): Blitz
+    protected function roll(): BlitzRoll
     {
         if (!$this->character->edgeCurrent) {
             throw new \RuntimeException('out');
@@ -103,12 +108,12 @@ class BlitzRoll
             $this->initiative += $roll;
         }
 
-        $lastRoll = $this->redis->del(
+        $lastRoll = $this->redis->del([
             sprintf(
                 'last-roll.%s',
                 strtolower(str_replace(' ', '_', $this->name))
             )
-        );
+        ]);
         $this->updateEdge();
         return $this;
     }
@@ -160,12 +165,13 @@ class BlitzRoll
             return (string)$response;
         }
         $combatants = json_decode($combatants);
+        $value = null;
         foreach ($combatants as $index => $value) {
             if ($value->name == $this->name) {
                 break;
             }
         }
-        if ($value->initiative) {
+        if ($value && $value->initiative) {
             $response->attachments[] = [
                 'color' => 'danger',
                 'title' => 'Already rolled',

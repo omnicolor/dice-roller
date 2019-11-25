@@ -44,7 +44,7 @@ class Number implements MongoClientInterface, RedisClientInterface
 
     /**
      * Array of individual dice rolls.
-     * @var string[]
+     * @var string[]|int[]
      */
     protected $rolls = [];
 
@@ -96,7 +96,7 @@ class Number implements MongoClientInterface, RedisClientInterface
 
     /**
      * Roll dice.
-     * @return Number
+     * @return \RollBot\Shadowrun5E\Number
      */
     protected function roll(): Number
     {
@@ -145,7 +145,7 @@ class Number implements MongoClientInterface, RedisClientInterface
 
     /**
      * Bold successes, strike out failures in the roll list.
-     * @return Number
+     * @return \RollBot\Shadowrun5E\Number
      */
     protected function prettifyRolls(): Number
     {
