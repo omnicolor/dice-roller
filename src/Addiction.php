@@ -160,7 +160,6 @@ class Addiction
         }
 
         if (1 === count($args)) {
-            error_log(print_r($args, true));
             // We've got an attempt to actually roll some dice!
             list($drug, $this->weeks, $this->type, $this->done) =
                 explode('|', $args[0]);

@@ -4,14 +4,19 @@
  */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\MongoClientInterface;
+use RollBot\MongoClientTrait;
+use RollBot\RedisClientInterface;
+use RollBot\RedisClientTrait;
+use RollBot\Response;
 
 /**
  * Handle the character wanting to roll some dice.
  */
-class Roll
+class Number
     implements MongoClientInterface, RedisClientInterface
 {
     use MongoClientTrait;
@@ -95,9 +100,9 @@ class Roll
 
     /**
      * Roll dice.
-     * @return Roll
+     * @return Number
      */
-    protected function roll(): Roll
+    protected function roll(): Number
     {
         // Roll the dice, keeping track of successes and failures.
         for ($i = 0; $i < $this->dice; $i++) {
@@ -144,9 +149,9 @@ class Roll
 
     /**
      * Bold successes, strike out failures in the roll list.
-     * @return Roll
+     * @return Number
      */
-    protected function prettifyRolls(): Roll
+    protected function prettifyRolls(): Number
     {
         array_walk($this->rolls, function(&$value, $key) {
             if ($value >= 5) {
@@ -205,7 +210,7 @@ class Roll
         if ($this->glitch) {
             $color = 'warning';
             $title .= ', glitched';
-        } elseif (0 === $successes) {
+        } elseif (0 === $this->successes) {
             $color = 'danger';
         }
         if ($this->text) {

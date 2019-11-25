@@ -163,7 +163,6 @@ class NegotiateBlackMarket
     {
         $id = $market['id'];
         unset($market['id']);
-        //error_log(print_r($market, true));
     }
 
     /**

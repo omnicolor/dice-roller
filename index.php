@@ -9,6 +9,74 @@ use Lcobucci\JWT\Signer\Hmac\Sha256;
 require 'vendor/autoload.php';
 $config = require 'config.php';
 
+header('Access-Control-Allow-Origin: *');
+if ('OPTIONS' === $_SERVER['REQUEST_METHOD']) {
+    // Handle CORS pre-flight requests.
+    echo 'OK';
+    exit();
+}
+header('Content-Type: application/json');
+
+$log = new \Monolog\Logger('RollBot');
+$log->pushHandler(new \Monolog\Handler\StreamHandler(
+    $config['log_file'],
+    \Monolog\Logger::DEBUG
+));
+$mongo = new \MongoDB\Client(sprintf(
+    'mongodb://%s:%s@%s',
+    $config['mongo']['user'],
+    urlencode($config['mongo']['pass']),
+    $config['mongo']['host']
+));
+
+try {
+    $dispatcher = new Dispatcher($_POST, $config, $mongo, $log);
+    $roll = $dispatcher->getRoll();
+} catch (Exception\RollBotException $ex) {
+    $attachment = [
+        'color' => $ex->getColor(),
+        'title' => $ex->getTitle(),
+        'text' => $ex->getMessage(),
+    ];
+    if ($ex instanceof \RollBot\Exception\FieldsInterface) {
+        $attachment['fields'] = $ex->getFields();
+    }
+    if ($ex instanceof \RollBot\Exception\ActionsInterface) {
+        $attachment['actions'] = $ex->getActions();
+    }
+    $response = new Response();
+    $response->attachments[] = $attachment;
+    echo (string)$response;
+    exit();
+} catch (\Exception $ex) {
+    $attachment = [
+        'color' => 'danger',
+        'title' => 'Error',
+        'text' => $ex->getMessage(),
+    ];
+    $response = new Response();
+    $response->attachments[] = $attachment;
+    echo (string)$response;
+    exit();
+}
+
+if ($roll instanceof ConfigurableInterface) {
+    $roll->setConfig($config);
+}
+if ($roll instanceof GuzzleClientInterface) {
+    $guzzle = new \GuzzleHttp\Client(['base_uri' => $config['api']]);
+    $roll->setGuzzleClient($guzzle);
+}
+if ($roll instanceof RedisClientInterface) {
+    $redis = new \Predis\Client();
+    $roll->setRedisClient($redis);
+}
+if ($roll instanceof MongoClientInterface) {
+    $roll->setMongoClient($mongo);
+}
+echo (string)$roll;
+exit();
+
 /**
  * Try to load a campaign attached to the current team and channel.
  * @param \MongoDB\Client $mongo
@@ -67,45 +135,8 @@ function sendUnregisteredResponse(
     echo (string)$response;
 }
 
-$response = new Response();
+
 $redis = new \Predis\Client();
-$mongo = new \MongoDB\Client(
-    sprintf(
-        'mongodb://%s:%s@%s',
-        $config['mongo']['user'],
-        urlencode($config['mongo']['pass']),
-        $config['mongo']['host']
-    )
-);
-
-header('Access-Control-Allow-Origin: *');
-if ('OPTIONS' === $_SERVER['REQUEST_METHOD']) {
-    echo 'OK';
-    exit();
-}
-
-if (!isset($_POST['user_id'], $_POST['team_id'], $_POST['channel_id'])) {
-    header('Content-Type: text/plain');
-    echo 'Bad Request', PHP_EOL, PHP_EOL,
-        'Your request does not seem to be a valid Slack slash command.',
-        PHP_EOL;
-    exit();
-}
-
-header('Content-Type: application/json');
-if (!isset($_POST['text']) || !trim($_POST['text'])) {
-    $response->attachments[] = [
-        'color' => 'danger',
-        'title' => 'Bad Request',
-        'text' => 'You must include at least one command argument.' .
-            PHP_EOL . 'For example: `/roll init` to roll your character\'s ' .
-            'initiative, `/roll 1` to roll one die, or `/roll 12 6` to roll ' .
-            'twelve dice with a limit of six.' . PHP_EOL . PHP_EOL
-            . 'Type `/roll help` for more help.',
-    ];
-    echo $response;
-    exit();
-}
 $args = explode(' ', $_POST['text']);
 
 try {
@@ -119,14 +150,6 @@ try {
     // The user is not registered, is the channel registered?
     $campaign = loadCampaign($mongo, $_POST['team_id'], $_POST['channel_id']);
     if (!$campaign) {
-        error_log(
-            sprintf(
-                'ROLLER: %s (%s) tried to use roller in channel (%s)',
-                $_POST['user_name'],
-                $_POST['user_id'],
-                $_POST['channel_id']
-            )
-        );
         $response->attachments[] = [
             'color' => 'danger',
             'title' => 'Bad Request',
@@ -149,6 +172,10 @@ try {
         echo (string)$response;
         exit();
     }
+    if ('expanse' === $campaign->type) {
+        echo 'Expansing';
+        exit();
+    }
     sendUnregisteredResponse(
         $response,
         $config['web'],
@@ -158,6 +185,7 @@ try {
     );
     exit();
 }
+
 
 $campaignId = $characterId = null;
 foreach ($user->slack as $slack) {
@@ -170,14 +198,6 @@ foreach ($user->slack as $slack) {
     }
 }
 if (!$campaignId) {
-    error_log(
-        sprintf(
-            'ROLLER: %s (%s) tried to use roller in channel (%s)',
-            $_POST['user_name'],
-            $_POST['user_id'],
-            $_POST['channel_id']
-        )
-    );
     sendUnregisteredResponse(
         $config['web'],
         $response,

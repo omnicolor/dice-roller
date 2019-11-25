@@ -4,31 +4,22 @@
  */
 
 declare(strict_types=1);
-namespace RollBot;
+namespace RollBot\Shadowrun5E;
 
-use Commlink\Character;
+use RollBot\Response;
 
 /**
  * Handle a user asking for help.
  */
-class Help
+class HelpRoll
 {
-    /**
-     * Set up a new instance of the help command.
-     * @param \Commlink\Character $character
-     * @param array $args
-     */
-    public function __construct(Character $character, array $args)
-    {
-    }
-
     /**
      * Return help formatted for Slack.
      */
     public function __toString(): string
     {
         $response = new Response();
-        $response->text = 'RollBot allows you to roll Shadowrun dice';
+        $response->text = 'RollBot allows you to roll Shadowrun 5E dice';
         $response->attachments[] = [
             'text' => '`help` - Show help' . PHP_EOL
             . '`6 [text]` - Roll 6 dice, with optional text (automatics, '
