@@ -1,0 +1,8 @@
+parameters:
+    paths:
+        - %currentWorkingDirectory%/src
+    level: 7
+    universalObjectCratesClasses:
+        - MongoDB\Client
+        - MongoDB\Database
+        - RollBot\User
