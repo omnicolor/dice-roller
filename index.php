@@ -74,227 +74,43 @@ if ($roll instanceof RedisClientInterface) {
 if ($roll instanceof MongoClientInterface) {
     $roll->setMongoClient($mongo);
 }
-echo (string)$roll;
-exit();
-
-/**
- * Try to load a campaign attached to the current team and channel.
- * @param \MongoDB\Client $mongo
- * @param string $teamId
- * @param string $channelId
- * @return \MongoDB\Model\BSONDocument
- */
-function loadCampaign(
-    \MongoDb\Client $mongo,
-    string $teamId,
-    string $channelId
-): ?\MongoDB\Model\BSONDocument {
-    $search = [
-        'slack-team' => $teamId,
-        'slack-channel' => $channelId,
-    ];
-    return $mongo->shadowrun->campaigns->findOne($search);
-}
-
-/**
- * The user is not registered in Commlink, give them a registration button.
- * @param Response $response
- * @param string $api
- * @param string|null $userId
- * @param string|null $teamId
- * @param string|null $channelId
- */
-function sendUnregisteredResponse(
-    Response $response,
-    string $web,
-    ?string $userId,
-    ?string $teamId,
-    ?string $channelId
-): void {
-    $url = sprintf(
-        '%ssettings?%s',
-        $web,
-        http_build_query([
-            'user_id' => $userId,
-            'team_id' => $teamId,
-            'channel_id' => $channelId,
-        ])
-    );
-    $response->attachments[] = [
-        'color' => 'danger',
-        'title' => 'Bad Request',
-        'text' => 'You don\'t seem to be registered to play.',
-        'actions' => [
-            [
-                'type' => 'button',
-                'text' => 'Register',
-                'url' => $url,
-            ],
-        ],
-    ];
-    echo (string)$response;
-}
-
-
-$redis = new \Predis\Client();
-$args = explode(' ', $_POST['text']);
-
-try {
-    $user = new User(
-        $mongo,
-        $_POST['user_id'],
-        $_POST['team_id'],
-        $_POST['channel_id']
-    );
-} catch (\Exception $e) {
-    // The user is not registered, is the channel registered?
-    $campaign = loadCampaign($mongo, $_POST['team_id'], $_POST['channel_id']);
-    if (!$campaign) {
-        $response->attachments[] = [
-            'color' => 'danger',
-            'title' => 'Bad Request',
-            'text' => 'There does not seem to be a campaign linked to this '
-            . 'channel. If you\'re the Gamemaster, go to the campaign page in '
-            .  $config['web'] . ' and set it up.',
-            'fields' => [
-                [
-                    'title' => 'team_id',
-                    'value' => $_POST['team_id'],
-                    'short' => true,
-                ],
-                [
-                    'title' => 'channel_id',
-                    'value' => $_POST['channel_id'],
-                    'short' => true,
-                ],
-            ],
-        ];
-        echo (string)$response;
-        exit();
-    }
-    if ('expanse' === $campaign->type) {
-        echo 'Expansing';
-        exit();
-    }
-    sendUnregisteredResponse(
-        $response,
-        $config['web'],
-        $_POST['user_id'],
-        $_POST['team_id'],
-        $_POST['channel_id']
-    );
+if (!isset($_POST['to_channel'])) {
+    // Normal Slack interaction, not from Commlink.
+    echo (string)$roll;
     exit();
 }
 
-
-$campaignId = $characterId = null;
-foreach ($user->slack as $slack) {
-    if ($_POST['user_id'] === $slack->user_id &&
-        $_POST['team_id'] === $slack->team_id &&
-        $_POST['channel_id'] === $slack->channel_id) {
-        $characterId = $slack->character_id;
-        $campaignId = $slack->campaign_id;
-        break;
-    }
-}
-if (!$campaignId) {
-    sendUnregisteredResponse(
-        $config['web'],
-        $response,
-        $_POST['user_id'],
-        $_POST['team_id'],
-        $_POST['channel_id']
+if (!$dispatcher->getCampaign()) {
+    $log->error(
+        'Could not post to Slack channel, no campaign',
+        ['characterId' => $character->id]
     );
+    echo 'Could not post to campaign channel';
     exit();
 }
 
-$guzzle = new \GuzzleHttp\Client(['base_uri' => $config['api']]);
-$jwt = (new Builder())
-    ->setIssuer('https://sr.digitaldarkness.com')
-    ->setAudience($config['api'])
-    ->setIssuedAt(time())
-    ->setExpiration(time() + 60)
-    ->set('email', $user->email)
-    ->sign(new Sha256(), $config['secret'])
-    ->getToken();
-
-if ($characterId) {
-    try {
-        $character = new Character($characterId, $guzzle, $jwt);
-    } catch (\RuntimeException $e) {
-        $response->attachments[] = [
-            'color' => 'danger',
-            'title' => 'Bad Request',
-            'text' => sprintf(
-                'You don\'t seem to be the owner of character ID: %s',
-                $characterId
-            ),
-        ];
-        echo (string)$response;
-        exit();
-    }
-} else {
-    $character = new Character();
-    $character->handle = 'GM';
-}
-$character->campaignId = $campaignId;
-
-if (!is_numeric($args[0])) {
-    try {
-        $class = 'RollBot\\' . ucfirst($args[0]);
-        $roll = new $class($character, $args);
-    } catch (\Error $e) {
-        $response->attachments[] = [
-            'color' => 'danger',
-            'title' => 'Bad Request',
-            'text' => 'That doesn\'t seem to be a valid command. '
-            . 'Try `/roll help`.' . PHP_EOL
-            . $e->getMessage(),
-        ];
-        echo (string)$response;
-        exit();
-    } catch (\Exception $e) {
-        $response->attachments[] = [
-            'color' => 'danger',
-            'title' => 'Bad Request',
-            'text' => $e->getMessage(),
-        ];
-        echo (string)$response;
-        exit();
-    }
-} else {
-    $roll = new Roll($character, $args);
-}
-if ($roll instanceof GuzzleClientInterface) {
-    $roll->setGuzzleClient(new \GuzzleHttp\Client());
-}
-if ($roll instanceof RedisClientInterface) {
-    $roll->setRedisClient($redis);
-}
-if ($roll instanceof MongoClientInterface) {
-    $roll->setMongoClient($mongo);
-}
-if (isset($_POST['to_channel']) && 'true' == $_POST['to_channel']) {
-    $search = [
-        '_id' => new \MongoDB\BSON\ObjectID($character->campaignId),
-    ];
-    $campaign = $mongo->shadowrun->campaigns->findOne($search);
-    if (!isset($campaign['slack-hook'])) {
-        echo 'Could not post to campaign channel';
-        exit();
-    }
-    $body = (string)$roll;
-    $guzzle->request(
-        'POST',
-        $campaign['slack-hook'],
+$hook = $dispatcher->getCampaign()->getSlackHook();
+if (!$hook) {
+    $log->error(
+        'Could not post to Slack channel, no hook URL',
         [
-            'body' => $body,
-            'headers' => [
-                'Content-Type' => 'application/json',
-            ],
+            'characterId' => $dispatcher->getCharacter()->id,
+            'campaignId' => $dispatcher->getCampaign()->getId(),
         ]
     );
-    echo $roll;
+    echo 'Could not post to campaign channel';
     exit();
 }
+$roll = (string)$roll;
+$guzzle = new \GuzzleHttp\Client();
+$guzzle->request(
+    'POST',
+    $hook,
+    [
+        'body' => $roll,
+        'headers' => [
+            'Content-Type' => 'application/json',
+        ],
+    ]
+);
 echo $roll;
