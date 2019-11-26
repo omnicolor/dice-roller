@@ -37,7 +37,7 @@ class Campaign
     {
         $this->id = (string)$campaign->_id;
         $this->name = $campaign->name;
-        $this->slackHook = $campaign->slackHook ?? null;
+        $this->slackHook = $campaign->{'slack-hook'} ?? null;
         $this->type = $campaign->type;
     }
 
