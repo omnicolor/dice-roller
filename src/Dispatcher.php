@@ -32,6 +32,11 @@ class Dispatcher
     protected $channelId;
 
     /**
+     * @var mixed
+     */
+    protected $character;
+
+    /**
      * @var array
      */
     protected $config;
@@ -125,6 +130,15 @@ class Dispatcher
     }
 
     /**
+     * Return the character (if it exists).
+     * @return mixed
+     */
+    public function getCharacter()
+    {
+        return $this->character;
+    }
+
+    /**
      * Try to load a campaign attached to the current team and channel.
      */
     protected function loadCampaign(): void
@@ -197,17 +211,17 @@ class Dispatcher
             throw $ex;
         }
         try {
-            $character = Expanse\Character::loadFromMongo(
+            $this->character = Expanse\Character::loadFromMongo(
                 $this->mongo,
                 $this->campaign->getId(),
                 $this->user->email
             );
         } catch (\RuntimeException $e) {
             // Characters are overrated.
-            $character = null;
+            $this->character = null;
         }
         if (is_numeric($this->args[0])) {
-            $roll = new Expanse\Number($this->args, $character);
+            $roll = new Expanse\Number($this->args, $this->character);
             return $roll;
         }
         try {
@@ -266,7 +280,7 @@ class Dispatcher
 
         if ($characterId) {
             try {
-                $character = new \Commlink\Character(
+                $this->character = new \Commlink\Character(
                     $characterId,
                     $guzzle,
                     $jwt
@@ -278,11 +292,11 @@ class Dispatcher
                 ));
             }
         } else {
-            $character = new Character();
-            $character->handle = 'GM';
+            $this->character = new Character();
+            $this->character->handle = 'GM';
         }
         if (is_numeric($this->args[0])) {
-            return new Shadowrun5E\Number($character, $this->args);
+            return new Shadowrun5E\Number($this->character, $this->args);
         }
 
         try {
@@ -290,7 +304,7 @@ class Dispatcher
                 'RollBot\\Shadowrun5E\\%sRoll',
                 ucfirst($this->args[0])
             );
-            return new $class($character, $this->args);
+            return new $class($this->character, $this->args);
         } catch (\Error $unused) {
             // Ignore the class not being found, they may have wanted
             // a generic roll.
