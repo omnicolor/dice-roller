@@ -3,6 +3,8 @@
  * The user clicked a button on a Slack message.
  */
 
+declare(strict_types=1);
+
 namespace RollBot;
 
 use Commlink\Character;
@@ -30,15 +32,26 @@ $mongo = new Mongo(
         $config['mongo']['host']
     )
 );
+$log = new \Monolog\Logger('RollBot');
+$log->pushHandler(new \Monolog\Handler\StreamHandler(
+    $config['log_file'],
+    \Monolog\Logger::DEBUG
+));
 $redis = new Predis();
 $response = new Response();
 $payload = json_decode($_POST['payload']);
 $action = $payload->actions[0]->name;
-$type = $payload->actions[0]->value;
+if (property_exists($payload->actions[0], 'selected_options')) {
+    $type = $payload->actions[0]->selected_options[0]->value;
+    $log->debug('Action: ' . $action . ' Type: ' . $type);
+} else {
+    $log->debug('Action: ' . $action . ' Type: Unknown');
+}
+
 $userId = $payload->user->id;
 $teamId = $payload->team->id;
 $channelId = $payload->channel->id;
-$originalMessage = $payload->original_message;
+$originalMessage = $payload->original_message ?? null;
 $args = [];
 
 try {
@@ -85,27 +98,29 @@ $jwt = (new Builder())
 
 $campaignId = $characterId = null;
 foreach ($user->slack as $slack) {
-    if ($userId === $slack->user_id &&
+    if (
+        $userId === $slack->user_id &&
         $teamId === $slack->team_id &&
-        $channelId === $slack->channel_id) {
-
+        $channelId === $slack->channel_id
+    ) {
         $characterId = $slack->character_id;
-        $campaignId = $slack->campaign_id;
+        $campaignId = $slack->campaign_id ?? null;
         break;
     }
 }
 if ($characterId) {
     $character = new Character($characterId, $guzzle, $jwt);
+    $campaignId = $character->campaignId;
 } else {
     $character = new Character();
     $character->handle = 'GM';
 }
-$character->campaignId = $campaignId;
 
 // Make sure it's not another character trying to edge this roll.
-if (($payload->callback_id != $character->handle)
-    && ($payload->callback_id != $campaignId)) {
-
+if (
+    ($payload->callback_id != $character->handle)
+    && ($payload->callback_id != $campaignId)
+) {
     $response->replaceOriginal = false;
     $response->deleteOriginal = false;
     $response->toChannel = false;
@@ -120,19 +135,17 @@ if (($payload->callback_id != $character->handle)
     exit();
 }
 
-if (!$type) {
-    $type = $action;
-    $args = json_decode($_POST['payload'], true);
-} elseif (false !== strpos($type, ' ')) {
-    $args = explode(' ', $type);
+$args = json_decode($_POST['payload'], true);
+if (!isset($type)) {
+    $args = explode(' ', $args['actions'][0]['value']);
     $type = array_shift($args);
 }
 
 try {
-    $class = 'RollBot\\' . ucfirst($type);
+    $class = sprintf('RollBot\\Shadowrun5E\\%sRoll', ucfirst($action));
     $roll = new $class($character, $args);
 } catch (\Error $e) {
-    error_log($action . ' ' . $type . ' ' . $e->getMessage());
+    $log->error($action . ' ' . $type . ': ' . $e->getMessage());
     $response->replaceOriginal = false;
     $response->toChannel = false;
     $response->attachments[] = [
