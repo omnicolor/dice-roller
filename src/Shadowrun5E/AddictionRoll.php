@@ -172,11 +172,14 @@ class AddictionRoll implements GuzzleClientInterface, MongoClientInterface, Redi
         }
 
         if (isset($args['actions'][0]['selected_options'][0]['value'])) {
-            list($drug, $this->weeks) = explode(
+            $parts = explode(
                 '|',
                 $args['actions'][0]['selected_options'][0]['value']
             );
+            $drug = $parts[0];
             $this->drug = $this->drugs[$drug];
+            $this->weeks = $parts[1] ?? null;
+            return;
         }
     }
 
@@ -361,16 +364,20 @@ class AddictionRoll implements GuzzleClientInterface, MongoClientInterface, Redi
         ];
         $campaign = $this->mongo->shadowrun->campaigns->findOne($search);
         $slackHook = $campaign['slack-hook'];
-        $this->guzzle->request(
-            'POST',
-            $slackHook,
-            [
-                'body' => json_encode($roll),
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                ],
-            ]
-        );
+        try {
+            $this->guzzle->request(
+                'POST',
+                $slackHook,
+                [
+                    'body' => json_encode($roll),
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                    ],
+                ]
+            );
+        } catch (\Exception $ex) {
+            $this->log->error($ex->getMessage());
+        }
 
         // Finally, delete the ephemeral message to clean up the channel.
         $response = new Response();
