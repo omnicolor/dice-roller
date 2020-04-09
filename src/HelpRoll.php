@@ -30,7 +30,7 @@ class HelpRoll implements ConfigurableInterface
                     . 'marking one of them as the "drama die", adding up the '
                     . 'result with the number you give for your '
                     . 'attribute+focus score, and return the result along with '
-                    . 'any stunt points.' . PHP_EOL
+                    . 'any stunt points.' . PHP_EOL . PHP_EOL
                     . 'If your game uses <%s|Commlink> as well, links in the '
                     . 'app will automatically roll in Slack, and changes made '
                     . 'to your character via Slack will appear in Commlink.',
@@ -40,14 +40,16 @@ class HelpRoll implements ConfigurableInterface
         $response->attachments[] = [
             'title' => 'Supported Systems',
             'text' => 'The current channel is not registered for any of the '
-                . 'systems. If you\'d like to use roll bot for one of these '
-                . 'systems, you\'ll have to talk to <@U025GMATW>.' . PHP_EOL
+                . 'systems.' . PHP_EOL
+                . '· Shadowrun Anarchy' . PHP_EOL
                 . '· Shadowrun 5th Edition' . PHP_EOL
+                . '· Shadowrun 6th Edition' . PHP_EOL
                 . '· The Expanse',
         ];
         $response->attachments[] = [
             'title' => 'Commands For Unregistered Channels',
-            'text' => '`help` - Show help' . PHP_EOL,
+            'text' => '`help` - Show help' . PHP_EOL
+                . '`register` - Register this channel' . PHP_EOL,
         ];
         return (string)$response;
     }
