@@ -6,3 +6,4 @@ parameters:
         - MongoDB\Client
         - MongoDB\Database
         - RollBot\User
+        - MongoDB\Model\BSONDocument
