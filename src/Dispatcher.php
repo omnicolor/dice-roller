@@ -167,6 +167,7 @@ class Dispatcher
             );
             return;
         }
+        $this->log->debug('Found campaign: ', (array)$campaign);
         $this->campaign = new Campaign($campaign);
     }
 
@@ -343,9 +344,9 @@ class Dispatcher
         try {
             $class = sprintf('RollBot\\%sRoll', ucfirst($this->args[0]));
             $roll = new $class();
-        } catch (\Error $unused) {
+        } catch (\Error $ex) {
             $this->log->error(
-                sprintf('Unable to find roll for %s', $this->args[0])
+                sprintf('Unable to find roll for %s: %s', $this->args[0], $ex)
             );
             throw new Exception\RollNotFoundException();
         }

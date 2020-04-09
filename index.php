@@ -33,6 +33,7 @@ try {
     $dispatcher = new Dispatcher($_POST, $config, $mongo, $log);
     $roll = $dispatcher->getRoll();
 } catch (Exception\RollBotException $ex) {
+    $log->error(sprintf('RollBot exception: %s', $ex->getMessage()));
     $attachment = [
         'color' => $ex->getColor(),
         'title' => $ex->getTitle(),
@@ -49,6 +50,7 @@ try {
     echo (string)$response;
     exit();
 } catch (\Exception $ex) {
+    $log->error(sprintf('Exception: %s', $ex->getMessage()));
     $attachment = [
         'color' => 'danger',
         'title' => 'Error',
