@@ -204,12 +204,12 @@ class Dispatcher
     {
         $this->log->debug('Dispatcher::getExpanseRoll');
         if (!$this->user) {
-            $ex = new Exception\NoUserException();
-            $ex->setChannelId($this->channelId)
+            $exc = new Exception\NoUserException();
+            $exc->setChannelId($this->channelId)
                 ->setTeamId($this->teamId)
                 ->setUserId($this->userId)
                 ->setWebUrl($this->webUrl);
-            throw $ex;
+            throw $exc;
         }
         try {
             $this->character = Expanse\Character::loadFromMongo(
