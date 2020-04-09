@@ -48,7 +48,6 @@ class CampaignRoll implements MongoClientInterface
             '_id' => new \MongoDB\BSON\ObjectId($this->campaignId),
         ];
         $campaign = $this->mongo->shadowrun->campaigns->findOne($search);
-        error_log(print_r($campaign, true));
         $response = new Response();
         $response->attachments[] = [
             'title' => $campaign->name,
