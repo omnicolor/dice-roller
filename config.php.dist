@@ -1,0 +1,19 @@
+<?php
+/**
+ * Configuration data.
+ *
+ * Add your appropriate config values below.
+ */
+
+return array(
+    'api' => '', // Commlink API gateway
+    'discord' => '', // Your Bot's API token.
+    'web' => '', // Commlink frontend
+    'mongo' => array(
+        'host' => '', // Mongo DB host
+        'pass' => '', // Mongo DB password
+        'user' => '', // Mongo DB username
+    ),
+    'secret' => '', // Shared secret with the Commlink API
+    'log_file' => '', // Where to write log messages to
+);
