@@ -1,6 +1,6 @@
 # Dice Roller
 
-This is a slash command for Slack to roll Shadowrun 5E dice.
+This is a slash command for Slack and Discord to roll dice.
 
 Probably useless to most people, since it's heavily integrated with a Shadowrun
 5E frontend called Commlink, and requires a character built there in order to
