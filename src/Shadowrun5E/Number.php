@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\DiscordInterface;
 use RollBot\MongoClientInterface;
 use RollBot\MongoClientTrait;
 use RollBot\RedisClientInterface;
@@ -14,7 +15,7 @@ use RollBot\Response;
 /**
  * Handle the character wanting to roll some dice.
  */
-class Number implements MongoClientInterface, RedisClientInterface
+class Number implements DiscordInterface, MongoClientInterface, RedisClientInterface
 {
     use MongoClientTrait;
     use RedisClientTrait;
@@ -23,61 +24,61 @@ class Number implements MongoClientInterface, RedisClientInterface
      * Current character
      * @var \Commlink\Character
      */
-    protected $character;
+    protected Character $character;
 
     /**
      * Number of dice to roll.
      * @var int
      */
-    protected $dice = 0;
+    protected int $dice = 0;
 
     /**
      * Number of successes to keep.
      * @var ?int
      */
-    protected $limit = null;
+    protected ?int $limit = null;
 
     /**
      * Name of whoever rolled.
      * @var string
      */
-    protected $name = '';
+    protected string $name = '';
 
     /**
      * Array of individual dice rolls.
-     * @var string[]|int[]
+     * @var array<string|int>
      */
-    protected $rolls = [];
+    protected array $rolls = [];
 
     /**
      * Number of successes rolled.
      * @var int
      */
-    protected $successes = 0;
+    protected int $successes = 0;
 
     /**
      * Number of failures rolled.
      * @var int
      */
-    protected $fails = 0;
+    protected int $fails = 0;
 
     /**
      * Whether the roll was a glitch.
      * @var bool
      */
-    protected $glitch = false;
+    protected bool $glitch = false;
 
     /**
      * Whether the roll was a critical glitch.
      * @var bool
      */
-    protected $criticalGlitch = false;
+    protected bool $criticalGlitch = false;
 
     /**
      * Optional text to include with the roll.
      * @var string
      */
-    protected $text;
+    protected string $text;
 
     /**
      * Build a new generic Shadowrun roll.
@@ -88,76 +89,11 @@ class Number implements MongoClientInterface, RedisClientInterface
     {
         $this->character = $character;
         $this->name = $character->handle;
-        $this->dice = array_shift($args);
+        $this->dice = (int)array_shift($args);
         if (isset($args[0]) && is_numeric($args[0])) {
-            $this->limit = array_shift($args);
+            $this->limit = (int)array_shift($args);
         }
         $this->text = implode(' ', $args);
-    }
-
-    /**
-     * Roll dice.
-     * @return \RollBot\Shadowrun5E\Number
-     */
-    protected function roll(): Number
-    {
-        // Roll the dice, keeping track of successes and failures.
-        for ($i = 0; $i < $this->dice; $i++) {
-            $roll = random_int(1, 6);
-            $this->rolls[] = $roll;
-            if (5 <= $roll) {
-                $this->successes++;
-            }
-            if (1 == $roll) {
-                $this->fails++;
-            }
-        }
-
-        // See if it was a glitch.
-        if ($this->fails > 0 && $this->fails >= floor($this->dice / 2)) {
-            $this->glitch = true;
-            if (!$this->successes) {
-                $this->criticalGlitch = true;
-            }
-        }
-        rsort($this->rolls);
-        if ($this->name !== 'GM') {
-            // Only non-GMs get to use edge.
-            $lastRoll = [
-                'dice' => $this->dice,
-                'fails' => $this->fails,
-                'successes' => $this->successes,
-                'limit' => $this->limit,
-                'text' => $this->text,
-                'rolls' => $this->rolls,
-                'criticalGlitch' => $this->criticalGlitch,
-                'glitch' => $this->glitch,
-            ];
-            $this->redis->set(
-                sprintf(
-                    'last-roll.%s',
-                    strtolower(str_replace(' ', '_', $this->name))
-                ),
-                json_encode($lastRoll)
-            );
-        }
-        return $this;
-    }
-
-    /**
-     * Bold successes, strike out failures in the roll list.
-     * @return \RollBot\Shadowrun5E\Number
-     */
-    protected function prettifyRolls(): Number
-    {
-        array_walk($this->rolls, function (&$value, $key) {
-            if ($value >= 5) {
-                $value = sprintf('*%d*', $value);
-            } elseif ($value == 1) {
-                $value = sprintf('~%d~', $value);
-            }
-        });
-        return $this;
     }
 
     /**
@@ -237,5 +173,141 @@ class Number implements MongoClientInterface, RedisClientInterface
         $response->attachments[] = $attachment;
         $response->toChannel = true;
         return (string)$response;
+    }
+
+    /**
+     * Roll dice.
+     * @return \RollBot\Shadowrun5E\Number
+     */
+    protected function roll(): Number
+    {
+        // Roll the dice, keeping track of successes and failures.
+        for ($i = 0; $i < $this->dice; $i++) {
+            $roll = random_int(1, 6);
+            $this->rolls[] = $roll;
+            if (5 <= $roll) {
+                $this->successes++;
+            }
+            if (1 == $roll) {
+                $this->fails++;
+            }
+        }
+
+        // See if it was a glitch.
+        if ($this->fails > 0 && $this->fails >= floor($this->dice / 2)) {
+            $this->glitch = true;
+            if (!$this->successes) {
+                $this->criticalGlitch = true;
+            }
+        }
+        rsort($this->rolls);
+        if ($this->name !== 'GM') {
+            // Only non-GMs get to use edge.
+            $lastRoll = [
+                'dice' => $this->dice,
+                'fails' => $this->fails,
+                'successes' => $this->successes,
+                'limit' => $this->limit,
+                'text' => $this->text,
+                'rolls' => $this->rolls,
+                'criticalGlitch' => $this->criticalGlitch,
+                'glitch' => $this->glitch,
+            ];
+            $this->redis->set(
+                sprintf(
+                    'last-roll.%s',
+                    strtolower(str_replace(' ', '_', $this->name))
+                ),
+                json_encode($lastRoll)
+            );
+        }
+        return $this;
+    }
+
+    /**
+     * Bold successes, strike out failures in the roll list.
+     * @return \RollBot\Shadowrun5E\Number
+     */
+    protected function prettifyRolls(): Number
+    {
+        array_walk($this->rolls, function (&$value, $key) {
+            if ($value >= 5) {
+                $value = sprintf('*%d*', $value);
+            } elseif ($value == 1) {
+                $value = sprintf('~%d~', $value);
+            }
+        });
+        return $this;
+    }
+
+    /**
+     * Bold successes, strike out failures in the roll list.
+     * @return \RollBot\Shadowrun5E\Number
+     */
+    protected function prettifyRollsForDiscord(): Number
+    {
+        array_walk($this->rolls, function (&$value, $key) {
+            if ($value >= 5) {
+                $value = sprintf('**%d**', $value);
+            } elseif ($value == 1) {
+                $value = sprintf('~~%d~~', $value);
+            }
+        });
+        return $this;
+    }
+
+    /**
+     * Return the response formatted for Discord.
+     * @return string
+     */
+    public function getDiscordResponse(): string
+    {
+        $this->roll()->prettifyRollsForDiscord();
+        $footer = sprintf(
+            '%d%s: %s',
+            $this->dice,
+            $this->limit ? sprintf(' [%d]', $this->limit) : '',
+            implode(' ', $this->rolls)
+        );
+        if ($this->criticalGlitch) {
+            return sprintf(
+                '**Critical Glitch:** %s rolled %d ones with no successes%s',
+                $this->name,
+                $this->fails,
+                $this->text ? sprintf(' for "%s"', $this->text) : ''
+            ) . PHP_EOL . $footer;
+        }
+
+        $limited = $this->limit && $this->limit < $this->successes;
+        $successes = $limited ? $this->limit : $this->successes;
+        return sprintf(
+            '%s rolled %d success%s%s%s%s',
+            $this->name,
+            $limited ? $this->limit : $this->successes,
+            $successes !== 1 ? 'es' : '',
+            $limited ? ', hit limit' : '',
+            $this->glitch ? ', **glitched**' : '',
+            $this->text ? sprintf(' for "%s"', $this->text) : ''
+        ) . PHP_EOL . $footer;
+    }
+
+    /**
+     * Set the Discord message.
+     * @param \CharlotteDunois\Yasmin\Models\Message $message
+     * @return DiscordInterface
+     */
+    public function setMessage(
+        \CharlotteDunois\Yasmin\Models\Message $message
+    ): DiscordInterface {
+        return $this;
+    }
+
+    /**
+     * Return whether the response should be in a DM.
+     * @return bool
+     */
+    public function shouldDM(): bool
+    {
+        return false;
     }
 }
