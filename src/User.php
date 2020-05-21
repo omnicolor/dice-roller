@@ -19,20 +19,28 @@ class User
      * Try to load a user from the database.
      * @param \MongoDB\Client $mongo
      * @param string $userId
-     * @param string $teamId
-     * @param string $channelId
+     * @param ?string $teamId
+     * @param ?string $channelId
      */
     public function __construct(
         \MongoDB\Client $mongo,
         string $userId,
-        string $teamId,
-        string $channelId
+        ?string $teamId = null,
+        ?string $channelId = null
     ) {
-        $search = [
-            'slack.user_id' => $userId,
-            'slack.team_id' => $teamId,
-            'slack.channel_id' => $channelId,
-        ];
+        $search = [];
+        if (!$teamId) {
+            $search = [
+                'discord.tag' => $userId,
+                'discord.channel' => $channelId,
+            ];
+        } else {
+            $search = [
+                'slack.user_id' => $userId,
+                'slack.team_id' => $teamId,
+                'slack.channel_id' => $channelId,
+            ];
+        }
         $this->user = $mongo->shadowrun->users->findOne($search);
         if (!$this->user) {
             throw new \RuntimeException('User not found');

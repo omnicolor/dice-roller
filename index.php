@@ -78,7 +78,11 @@ if ($roll instanceof MongoClientInterface) {
 }
 if (!isset($_POST['to_channel'])) {
     // Normal Slack interaction, not from Commlink.
-    echo (string)$roll;
+    if ($roll instanceof SlackInterface) {
+        echo (string)$roll->getSlackResponse();
+    } else {
+        echo (string)$roll;
+    }
     exit();
 }
 
@@ -103,7 +107,11 @@ if (!$hook) {
     echo 'Could not post to campaign channel';
     exit();
 }
-$roll = (string)$roll;
+if ($roll instanceof SlackInterface) {
+    $roll = (string)$roll->getSlackResponse();
+} else {
+    $roll = (string)$roll;
+}
 $guzzle = new \GuzzleHttp\Client();
 $guzzle->request(
     'POST',
