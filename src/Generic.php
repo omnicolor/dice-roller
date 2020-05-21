@@ -92,6 +92,16 @@ class Generic implements DiscordInterface, SlackInterface
     }
 
     /**
+     * Return the roll formatted for Slack.
+     * @deprecated
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return (string)$this->getSlackResponse();
+    }
+
+    /**
      * See if the remaining text is a plus or minus modifier.
      */
     protected function parseModifier(): void
@@ -160,26 +170,22 @@ class Generic implements DiscordInterface, SlackInterface
     }
 
     /**
-     * Return the roll formatted for Slack.
-     * @deprecated
-     * @return string
+     * Set the Discord message.
+     * @param \CharlotteDunois\Yasmin\Models\Message $message
+     * @return DiscordInterface
      */
-    public function __toString(): string
+    public function setMessage(
+        \CharlotteDunois\Yasmin\Models\Message $message
+    ): DiscordInterface {
+        return $this;
+    }
+
+    /**
+     * Generic rolls should be returned to the channel they started in.
+     * @return bool
+     */
+    public function shouldDM(): bool
     {
-        $response = new Response();
-        $response->text = sprintf(
-            '<@%s> rolled %d %d-sided dice%s%s',
-            $this->userId,
-            $this->dice,
-            $this->pips,
-            $this->modifyingText,
-            $this->forText
-        );
-        $response->attachments[] = [
-            'text' => array_sum($this->rolls) + $this->modifier,
-            'footer' => implode(' ', $this->rolls) . ' (deprecated)',
-        ];
-        $response->toChannel = true;
-        return (string)$response;
+        return false;
     }
 }

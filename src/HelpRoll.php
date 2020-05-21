@@ -15,6 +15,27 @@ class HelpRoll implements ConfigurableInterface, DiscordInterface, SlackInterfac
     protected $config;
 
     /**
+     * Return help formatted for Slack.
+     * @deprecated
+     * @return string
+     */
+    public function __toString(): string
+    {
+        return (string)$this->getSlackResponse();
+    }
+
+    /**
+     * Set the configuration parameters for the object.
+     * @param array $config
+     * @return HelpRoll
+     */
+    public function setConfig(array $config): ConfigurableInterface
+    {
+        $this->config = $config;
+        return $this;
+    }
+
+    /**
      * Return help information formatted for Slack.
      * @return Response
      */
@@ -90,55 +111,22 @@ class HelpRoll implements ConfigurableInterface, DiscordInterface, SlackInterfac
     }
 
     /**
-     * Return help formatted for Slack.
-     * @deprecated
-     * @return string
+     * Unused setMessage to satisfy interface.
+     * @param \CharlotteDunois\Yasmin\Models\Message $message
+     * @return DiscordInterface
      */
-    public function __toString(): string
-    {
-        $response = new Response();
-        $response->text = 'RollBot is a dice roller and character manager (deprecated)';
-        $response->attachments[] = [
-            'title' => 'About RollBot',
-            'text' => sprintf(
-                'RollBot is a Slack bot that lets you roll dice '
-                    . 'appropriate for various RPG systems. For example, if '
-                    . 'you are playing The Expanse, it will roll three dice, '
-                    . 'marking one of them as the "drama die", adding up the '
-                    . 'result with the number you give for your '
-                    . 'attribute+focus score, and return the result along with '
-                    . 'any stunt points.' . PHP_EOL . PHP_EOL
-                    . 'If your game uses <%s|Commlink> as well, links in the '
-                    . 'app will automatically roll in Slack, and changes made '
-                    . 'to your character via Slack will appear in Commlink.',
-                $this->config['web']
-            ),
-        ];
-        $response->attachments[] = [
-            'title' => 'Supported Systems',
-            'text' => 'The current channel is not registered for any of the '
-                . 'systems.' . PHP_EOL
-                . '· Shadowrun Anarchy' . PHP_EOL
-                . '· Shadowrun 5th Edition' . PHP_EOL
-                . '· Shadowrun 6th Edition' . PHP_EOL
-                . '· The Expanse',
-        ];
-        $response->attachments[] = [
-            'title' => 'Commands For Unregistered Channels',
-            'text' => '`help` - Show help' . PHP_EOL
-                . '`register` - Register this channel' . PHP_EOL,
-        ];
-        return (string)$response;
+    public function setMessage(
+        \CharlotteDunois\Yasmin\Models\Message $message
+    ): DiscordInterface {
+        return $this;
     }
 
     /**
-     * Set the configuration parameters for the object.
-     * @param array $config
-     * @return HelpRoll
+     * Help should not be DMed.
+     * @return bool
      */
-    public function setConfig(array $config): ConfigurableInterface
+    public function shouldDM(): bool
     {
-        $this->config = $config;
-        return $this;
+        return false;
     }
 }

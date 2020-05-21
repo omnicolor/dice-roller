@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace RollBot;
 
+use CharlotteDunois\Yasmin\Models\DMChannel;
 use CharlotteDunois\Yasmin\Models\Message;
 use MongoDB\Client as Mongo;
 use Monolog\Logger;
@@ -85,13 +86,23 @@ class DiscordDispatcher
             $message->reply('I think you\'re a bot. It takes one to know one!');
             return;
         }
+        if ($message->channel instanceof DMChannel) {
+            if (substr($message->content, 0, 1) !== '/') {
+                $message->content = '/roll ' . $message->content;
+            }
+            $this->log->debug(
+                'DiscordDispatcher::handleRoll handling DM'
+            );
+        }
         if (substr($message->content, 0, 1) !== '/') {
+            // Ignore non-command chatter.
             return;
         }
-        if (!in_array($message->channel->name, $this->config['discord_channels'])) {
-            $this->log->debug(
-                'DiscordDispatcher::handleRoll ignoring message in other channel'
-            );
+        if (
+            !($message->channel instanceof DMChannel) &&
+            !in_array($message->channel->name, $this->config['discord_channels'])
+        ) {
+            // Ignore message in non-DM and non-monitored channel.
             return;
         }
 
@@ -127,52 +138,23 @@ class DiscordDispatcher
         if ($roll instanceof ConfigurableInterface) {
             $roll->setConfig($this->config);
         }
-
+        if ($roll instanceof MongoClientInterface) {
+            $roll->setMongoClient($this->mongo);
+        }
         if (!($roll instanceof DiscordInterface)) {
             $message->reply('That is a valid command, but has not been set up for Discord yet');
             return;
         }
 
-        $message->channel->send($roll->getDiscordResponse());
-        return;
-        switch ($command) {
-            case 'help':
-                $message->channel->send(sprintf(
-                    'RollBot is a Slack/Discord bot that lets you roll dice '
-                    . 'appropriate for various RPG systems. For example, if '
-                    . 'you are playing The Expanse, it will roll three dice, '
-                    . 'marking one of them as the "drama die", adding up the '
-                    . 'result with the number you give for your '
-                    . 'attribute+focus score, and return the result along with '
-                    . 'any stunt points.' . PHP_EOL . PHP_EOL
-                    . 'If your game uses Commlink (%s) as well, links in the '
-                    . 'app will automatically roll in Slack, and changes made '
-                    . 'to your character via Slack or Discord will appear in '
-                    . 'Commlink.' . PHP_EOL . PHP_EOL
-                    . '**Supported Systems**' . PHP_EOL
-                    . 'The current channel is not registered for any of the '
-                    . 'systems.' . PHP_EOL
-                    . '· The Expanse' . PHP_EOL
-                    . '· Shadowrun Anarchy' . PHP_EOL
-                    . '· Shadowrun 5th Edition' . PHP_EOL
-                    . '· Shadowrun 6th Edition' . PHP_EOL
-                    . '· Star Trek Adventures' . PHP_EOL . PHP_EOL
-                    . '**Commands For Unregistered Channels**' . PHP_EOL
-                    . '`help` - Show help' . PHP_EOL
-                    . '`XdY[+-M] [T]` - Roll X dice with Y pips, adding or '
-                    . 'subtracting M from the total, with optional T text',
-                    $this->config['web']
-                ));
-                return;
+        $roll->setMessage($message);
+
+        if ($roll->shouldDM()) {
+            $message->author->createDM()->then(function ($dm) use ($roll) {
+                $dm->send($roll->getDiscordResponse());
+            });
+            return;
         }
-        $this->log->debug(
-            'DiscordDispatcher::handleRoll handling message',
-            [
-                'from' => $message->author->tag,
-                'channel' => $message->channel->name,
-                'message' => $message->content,
-            ]
-        );
-        $message->reply('Not sure what to do with that');
+
+        $message->channel->send($roll->getDiscordResponse());
     }
 }

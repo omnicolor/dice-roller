@@ -4,15 +4,26 @@ declare(strict_types=1);
 
 namespace RollBot;
 
+use CharlotteDunois\Yasmin\Models\Message;
+
 /**
  * Handle a user asking for information about the setup.
  */
-class DebugRoll implements MongoClientInterface
+class DebugRoll implements DiscordInterface, MongoClientInterface, SlackInterface
 {
     use MongoClientTrait;
 
     /**
+     * Discord message that fired this.
+     * @var ?Message
+     */
+    protected ?Message $message;
+
+    /**
      * Figure out which Slack goes with this one (if any)
+     * @param \MongoDB\Model\BSONDocument $user
+     * @param string $teamId
+     * @param string $channelId
      */
     protected function findSlack(
         \MongoDB\Model\BSONDocument $user,
@@ -37,10 +48,65 @@ class DebugRoll implements MongoClientInterface
     }
 
     /**
+     * Try to load a user registered to the current channel.
+     * @param string $tag
+     * @param string $channel
+     * @return User
+     * @throws \RuntimeException
+     */
+    protected function loadUser(string $tag, string $channel): User
+    {
+        return new User($this->mongo, $tag, null, $channel);
+    }
+
+    /**
      * Return the debug information into the channel.
+     * @deprecated
      * @return string
      */
     public function __toString(): string
+    {
+        return (string)$this->getSlackResponse();
+    }
+
+    /**
+     * Return the response formatted for Discord.
+     * @return string
+     */
+    public function getDiscordResponse(): string
+    {
+        try {
+            $user = $this->loadUser(
+                $this->message->author->tag,
+                $this->message->channel->name
+            );
+            $user = $user->email;
+        } catch (\RuntimeException $e) {
+            $user = 'No user registered';
+        }
+
+        $response = '**Debug Info**' . PHP_EOL
+            . 'User: ' . $user . PHP_EOL;
+        return $response;
+    }
+
+    /**
+     * Set the Discord message.
+     * @param \CharlotteDunois\Yasmin\Models\Message $message
+     * @return DiscordInterface
+     */
+    public function setMessage(
+        \CharlotteDunois\Yasmin\Models\Message $message
+    ): DiscordInterface {
+        $this->message = $message;
+        return $this;
+    }
+
+    /**
+     * Return the debug information to Slack.
+     * @return Response
+     */
+    public function getSlackResponse(): Response
     {
         $channelId = $_POST['channel_id'] ?? 'Unknown';
         $teamId = $_POST['team_id'] ?? 'Unknown';
@@ -50,7 +116,7 @@ class DebugRoll implements MongoClientInterface
         ];
         $user = $this->mongo->shadowrun->users->findOne($search);
         $attachment = [
-            'title' => 'Debugging info',
+            'title' => 'Debugging Info',
             'fields' => [
                 [
                     'title' => 'Team ID',
@@ -132,6 +198,6 @@ class DebugRoll implements MongoClientInterface
         $response = new Response();
         $response->text = 'RollBot Debug';
         $response->attachments[] = $attachment;
-        return (string)$response;
+        return $response;
     }
 }
