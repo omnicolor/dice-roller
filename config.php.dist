@@ -8,6 +8,7 @@
 return array(
     'api' => '', // Commlink API gateway
     'discord' => '', // Your Bot's API token.
+    'discord_channels' => [], // Optional list of channels to limit listening to
     'web' => '', // Commlink frontend
     'mongo' => array(
         'host' => '', // Mongo DB host
