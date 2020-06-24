@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace RollBot\Shadowrun5E;
 
+use RollBot\DiscordInterface;
 use RollBot\Response;
 
 /**
  * Handle a user asking for help.
  */
-class HelpRoll
+class HelpRoll implements DiscordInterface
 {
     /**
      * Return help formatted for Slack.
@@ -64,5 +65,50 @@ class HelpRoll
             . '`addiction` - Start a dialog for avoiding addiction',
         ];
         return (string)$response;
+    }
+
+    /**
+     * Return the response formatted for Discord.
+     * @return string
+     */
+    public function getDiscordResponse(): string
+    {
+        return 'RollBot is a Slack/Discord bot that lets you roll dice for '
+            . 'various RPG systems. This channel is registered as Shadowrun '
+            . '5E.' . PHP_EOL . PHP_EOL
+            . 'Supported rolls:' . PHP_EOL
+            . '• `help` - Show help' . PHP_EOL
+            . '• `6 [text]` - Roll 6 dice, with optional text (automatics, '
+            . 'perception, etc)' . PHP_EOL
+            . '• `12 6 [text]` - Roll 12 dice with a limit of 6' . PHP_EOL
+            . '• `XdY[+-M] [T]` - Roll X dice with Y pips, adding or '
+            . 'subtracting M from the total, with optional T text' . PHP_EOL
+            . '• `composure` - Roll your character\' composure (WIL+CHR)'
+            . PHP_EOL
+            . '• `judge` - Roll judge intentions (INT+CHR)' . PHP_EOL
+            . '• `memory` - Roll memory (LOG+WIL)' . PHP_EOL
+            . '• `lifting` - Roll lifting/carrying (STR+BOD)' . PHP_EOL
+            . '• `stats` - DM your character\'s stats' . PHP_EOL
+            . '• `luck` - Roll your edge stat';
+    }
+
+    /**
+     * Set the Discord message.
+     * @param \CharlotteDunois\Yasmin\Models\Message $message
+     * @return DiscordInterface
+     */
+    public function setMessage(
+        \CharlotteDunois\Yasmin\Models\Message $message
+    ): DiscordInterface {
+        return $this;
+    }
+
+    /**
+     * Return whether the response should be in a DM.
+     * @return bool
+     */
+    public function shouldDM(): bool
+    {
+        return false;
     }
 }
