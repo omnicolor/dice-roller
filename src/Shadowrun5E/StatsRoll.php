@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace RollBot\Shadowrun5E;
 
 use Commlink\Character;
+use RollBot\DiscordInterface;
 use RollBot\Response;
 
 /**
  * Handle the user wanting to see information about their character.
  */
-class StatsRoll
+class StatsRoll implements DiscordInterface
 {
     /**
      * Character.
@@ -133,5 +134,101 @@ class StatsRoll
 
         $response->attachments[] = $attachment;
         return (string)$response;
+    }
+
+    /**
+     * Return the response formatted for Discord.
+     * @return string
+     */
+    public function getDiscordResponse(): string
+    {
+        if ($this->character->handle == 'GM') {
+            return 'You\'re the GM... What else can we say?';
+        }
+        $attributes = [
+            'body', 'agility', 'reaction', 'strength', 'willpower', 'logic',
+            'intuition', 'charisma', 'magic', 'resonance',
+        ];
+        $response = sprintf('%s\'s Stats', $this->character->handle) . PHP_EOL;
+        foreach ($attributes as $attribute) {
+            $value = $this->character->getModifiedAttribute($attribute);
+            // Ignore zero value attributes (magic, resonance)
+            if (!$value) {
+                continue;
+            }
+            if ($this->character->$attribute != $value) {
+                $value = sprintf(
+                    '(%d) %d',
+                    $this->character->$attribute,
+                    $value
+                );
+            }
+            $response .= sprintf('• **%s** %s', ucfirst($attribute), $value)
+                . PHP_EOL;
+        }
+        $response .= sprintf(
+            '• **Edge**  %d / %d',
+            $this->character->edgeCurrent,
+            $this->character->edge
+        ) . PHP_EOL
+            . sprintf('• **Initiative**  %s', $this->character->getInitiative())
+            . PHP_EOL
+            . sprintf(
+                '• **Physical Damage** %d / %d',
+                $this->character->damagePhysical ?? 0,
+                $this->character->getPhysicalMonitor()
+            ) . PHP_EOL
+            . sprintf(
+                '• **Stun Damage** %d / %d',
+                $this->character->damageStun ?? 0,
+                $this->character->getStunMonitor()
+            ) . PHP_EOL;
+        if ($this->character->damageOverflow) {
+            $response .= sprintf(
+                '• **Overflow** %d / %d',
+                $this->character->damageOverflow,
+                $this->character->getOverflowMonitor()
+            ) . PHP_EOL;
+        }
+        $response .= sprintf(
+            '• **Physical Limit** %d',
+            $this->character->getPhysicalLimit()
+        ) . PHP_EOL
+            . sprintf(
+                '• **Mental Limit** %d',
+                $this->character->getMentalLimit()
+            ) . PHP_EOL
+            . sprintf(
+                '• **Social Limit** %d',
+                $this->character->getSocialLimit()
+            );
+        if ($this->character->getAstralLimit()) {
+            $response .= PHP_EOL . sprintf(
+                '• **Astral Limit** %d',
+                $this->character->getAstralLimit()
+            );
+        }
+
+        return $response;
+    }
+
+    /**
+     * Set the Discord message.
+     * @param \CharlotteDunois\Yasmin\Models\Message $message
+     * @return DiscordInterface
+     */
+    public function setMessage(
+        \CharlotteDunois\Yasmin\Models\Message $message
+    ): DiscordInterface {
+        return $this;
+    }
+
+    /**
+     * Return whether the response should be in a DM.
+     * @return bool
+     */
+    public function shouldDM(): bool
+    {
+        return true;
     }
 }
