@@ -42,7 +42,7 @@ class SecondRoll extends Number
     protected function roll(): Number
     {
         if (!$this->character->edgeCurrent) {
-            throw new \RuntimeException('out');
+            throw new \RuntimeException('You\'re out of edge!');
         }
         $lastRoll = $this->redis->get(
             sprintf(
@@ -51,7 +51,7 @@ class SecondRoll extends Number
             )
         );
         if (!$lastRoll) {
-            throw new \RuntimeException('no');
+            throw new \RuntimeException('There\'s no last roll to second chance!');
         }
         $lastRoll = json_decode($lastRoll);
         if ($lastRoll->criticalGlitch) {
