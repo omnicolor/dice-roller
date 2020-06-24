@@ -51,6 +51,12 @@ class Number implements DiscordInterface, MongoClientInterface, RedisClientInter
     protected array $rolls = [];
 
     /**
+     * Where the roll was made.
+     * @var string
+     */
+    protected string $rolledOn = '';
+
+    /**
      * Number of successes rolled.
      * @var int
      */
@@ -102,8 +108,8 @@ class Number implements DiscordInterface, MongoClientInterface, RedisClientInter
      */
     public function __toString(): string
     {
-        $this->roll()
-            ->prettifyRolls();
+        $this->roll('Slack');
+        $rolls = $this->prettifyRolls();
         $response = new Response();
         if ($this->criticalGlitch) {
             $response->attachments[] = [
@@ -114,7 +120,7 @@ class Number implements DiscordInterface, MongoClientInterface, RedisClientInter
                     $this->name,
                     $this->fails
                 ),
-                'footer' => implode(' ', $this->rolls),
+                'footer' => implode(' ', $rolls),
             ];
             $response->toChannel = true;
             return (string)$response;
@@ -149,17 +155,24 @@ class Number implements DiscordInterface, MongoClientInterface, RedisClientInter
         if ($this->text) {
             $response->text = $this->text;
         }
+        $extraFooter = '';
+        if ($this->rolledOn !== 'Slack') {
+            $extraFooter = sprintf(' via %s', $this->rolledOn);
+        }
         $attachment = [
             'callback_id' => $this->name,
             'color' => $color,
             'title' => $title,
             'text' => $text,
-            'footer' => implode(' ', $this->rolls),
+            'footer' => implode(' ', $rolls) . $extraFooter,
         ];
 
         // Non-GM characters that still have some edge get the second change
         // button.
-        if ($this->name !== 'GM' && $this->character->edgeCurrent) {
+        if (
+            $this->rolledOn !== 'Slack'
+            && $this->name !== 'GM' && $this->character->edgeCurrent
+        ) {
             $attachment['actions'] = [
                 [
                     'name' => 'edge',
@@ -179,8 +192,12 @@ class Number implements DiscordInterface, MongoClientInterface, RedisClientInter
      * Roll dice.
      * @return \RollBot\Shadowrun5E\Number
      */
-    protected function roll(): Number
+    protected function roll(string $where): Number
     {
+        if ($this->rolls) {
+            return $this;
+        }
+        $this->rolledOn = $where;
         // Roll the dice, keeping track of successes and failures.
         for ($i = 0; $i < $this->dice; $i++) {
             $roll = random_int(1, 6);
@@ -226,34 +243,36 @@ class Number implements DiscordInterface, MongoClientInterface, RedisClientInter
 
     /**
      * Bold successes, strike out failures in the roll list.
-     * @return \RollBot\Shadowrun5E\Number
+     * @return array
      */
-    protected function prettifyRolls(): Number
+    protected function prettifyRolls(): array
     {
-        array_walk($this->rolls, function (&$value, $key) {
+        $rolls = $this->rolls;
+        array_walk($rolls, function (&$value, $key) {
             if ($value >= 5) {
                 $value = sprintf('*%d*', $value);
             } elseif ($value == 1) {
                 $value = sprintf('~%d~', $value);
             }
         });
-        return $this;
+        return $rolls;
     }
 
     /**
      * Bold successes, strike out failures in the roll list.
-     * @return \RollBot\Shadowrun5E\Number
+     * @return array
      */
-    protected function prettifyRollsForDiscord(): Number
+    protected function prettifyRollsForDiscord(): array
     {
-        array_walk($this->rolls, function (&$value, $key) {
+        $rolls = $this->rolls;
+        array_walk($rolls, function (&$value, $key) {
             if ($value >= 5) {
                 $value = sprintf('**%d**', $value);
             } elseif ($value == 1) {
                 $value = sprintf('~~%d~~', $value);
             }
         });
-        return $this;
+        return $rolls;
     }
 
     /**
@@ -262,12 +281,18 @@ class Number implements DiscordInterface, MongoClientInterface, RedisClientInter
      */
     public function getDiscordResponse(): string
     {
-        $this->roll()->prettifyRollsForDiscord();
+        $this->roll('Discord');
+        $rolls = $this->prettifyRollsForDiscord();
+        $extraFooter = '';
+        if ($this->rolledOn !== 'Discord') {
+            $extraFooter = sprintf(' via %s', $this->rolledOn);
+        }
         $footer = sprintf(
-            '%d%s: %s',
+            '%d%s: %s%s',
             $this->dice,
             $this->limit ? sprintf(' [%d]', $this->limit) : '',
-            implode(' ', $this->rolls)
+            implode(' ', $rolls),
+            $extraFooter
         );
         if ($this->criticalGlitch) {
             return sprintf(
